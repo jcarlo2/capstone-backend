@@ -22,13 +22,11 @@ public class TransactionService {
 
     public String generateId() {
         long id;
-        String formatId = "";
-        boolean flag = true;
-        while(flag) {
+        String formatId;
+        do {
             id = (long) (Math.random() * 1000000000000L);
-            formatId = String.format("%013d",id);
-            if(!reportRepository.existsById(formatId)) flag = false;
-        }
+            formatId = String.format("%013d", id);
+        } while (reportRepository.existsById("TR" + formatId + "-A0"));
         return "TR" + formatId + "-A0";
     }
 
@@ -40,9 +38,8 @@ public class TransactionService {
         return reportRepository.findByIsValidOrderByTimestampDesc("1");
     }
 
-
     public List<TransactionDetail> getReportBySearch(String search) {
-        return reportRepository.findAllByIdContainsAndIsValid(search,"1");
+        return reportRepository.findAllByIdContainsAndIsValidOrderByTimestampDesc(search,"1");
     }
 
     public List<TransactionDetail> getAllReportByStart(String start) {
@@ -66,13 +63,26 @@ public class TransactionService {
         return itemRepository.findAllByUniqueId(id);
     }
 
-    public Boolean saveReportItem(List<TransactionItemDetail> itemList) {
-        itemRepository.saveAll(itemList);
+    public Boolean saveReportItem(@NotNull List<TransactionItemDetail> itemList) {
+        if(itemRepository.existsByUniqueId(itemList.get(0).getUniqueId())) {
+            for(TransactionItemDetail item : itemList) {
+                itemRepository.updateItem(
+                    item.getSold(),
+                    item.getSoldTotal(),
+                    item.getDiscountPercentage(),
+                    item.getTotalAmount(),
+                    item.getUniqueId(),
+                    item.getProductId()
+                );
+            }
+        }else itemRepository.saveAll(itemList);
+
         return itemRepository.existsByUniqueId(itemList.get(0).getUniqueId());
     }
 
     public Boolean saveReport(TransactionDetail report) {
         reportRepository.save(report);
+        reportRepository.validate(report.getId());
         return reportRepository.existsById(report.getId());
     }
 
@@ -84,14 +94,13 @@ public class TransactionService {
         String end = id.substring(17);
         int num = Integer.parseInt(end);
         for(int i=0;i<num + 1;i++) {
-            delete(id);
+            reportRepository.invalidate(id);
             id = reverseId(id);
         }
     }
 
     public void delete(String id) {
-        itemRepository.deleteItems(id);
-        reportRepository.deleteReport(id);
+        reportRepository.invalidate(id);
         reportRepository.validate(reverseId(id));
     }
 
@@ -101,5 +110,25 @@ public class TransactionService {
         String end = id.substring(17);
         int num = Integer.parseInt(end) - 1;
         return start.append(num).toString();
+    }
+
+    public List<TransactionDetail> getAllArchivedReport() {
+        return reportRepository.findAllByIsValidOrderByTimestampDesc("0");
+    }
+
+    public List<TransactionDetail> getArchivedReportBySearch(String search) {
+        return reportRepository.findAllByIdContainsAndIsValidOrderByTimestampDesc(search,"0");
+    }
+
+    public List<TransactionDetail> getAllArchivedReportByDate(String start, String end) {
+        return reportRepository.findAllByIsValidAndTimestampBetween("0",start,end);
+    }
+
+    public List<TransactionDetail> getAllArchivedReportByEnd(String end) {
+        return reportRepository.findAllByIsValidAndTimestampLessThanEqualOrderByTimestampDesc("0",end);
+    }
+
+    public List<TransactionDetail> getAllArchivedReportByStart(String start) {
+        return reportRepository.findAllByIsValidAndTimestampGreaterThanEqualOrderByTimestampDesc("0",start);
     }
 }

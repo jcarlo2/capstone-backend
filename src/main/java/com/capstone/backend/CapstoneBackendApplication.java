@@ -10,6 +10,7 @@ public class CapstoneBackendApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(CapstoneBackendApplication.class, args);
+
     }
 
 }

@@ -29,11 +29,10 @@ public interface TransactionReportRepository extends CrudRepository<TransactionD
 
     List<TransactionDetail> findAllByIsValidAndTimestampLessThanEqualOrderByTimestampDesc(String isValid, String end);
 
-    List<TransactionDetail> findAllByIdContainsAndIsValid(String search,String isValid);
+    List<TransactionDetail> findAllByIdContainsAndIsValidOrderByTimestampDesc(String search,String isValid);
 
     List<TransactionDetail> findAllByIsValidAndTimestampBetween(String isValid,String start,String end);
 
-    @Modifying @Transactional
-    @Query(value = "DELETE FROM transaction_report WHERE id = ?1",nativeQuery = true)
-    void deleteReport(String id);
+    List<TransactionDetail> findAllByIsValidOrderByTimestampDesc(String isValid);
+
 }

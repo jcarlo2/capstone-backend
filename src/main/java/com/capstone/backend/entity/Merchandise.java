@@ -2,6 +2,7 @@ package com.capstone.backend.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
@@ -13,6 +14,7 @@ import javax.persistence.Table;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "product", schema = "retail_management")
 @Entity(name = "product")
 public class Merchandise {
@@ -30,7 +32,6 @@ public class Merchandise {
     private String piecesPerBox;
     @Column(name = "quantity_per_box",insertable = false)
     private String quantityPerBox;
-
-    public Merchandise() {
-    }
+    @Column(name = "capital")
+    private String capital;
 }

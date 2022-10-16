@@ -11,7 +11,14 @@ import java.util.List;
 
 @Repository
 public interface MerchandiseRepository extends CrudRepository<Merchandise, String> {
+    List<Merchandise> findAllByOrderById();
+    List<Merchandise> findAllByOrderByName();
     List<Merchandise> findAllByOrderByQuantityPerPiecesDesc();
+    List<Merchandise> findAllByOrderByQuantityPerPieces();
+    List<Merchandise> findAllByOrderByPrice();
+    List<Merchandise> findAllByOrderByPriceDesc();
+
+    List<Merchandise> findAllByPriceLessThanEqualOrderByPriceDesc(String search);
 
     @Modifying @Transactional
     @Query(value = "UPDATE product SET quantity_per_pieces = product.quantity_per_pieces + ?1 WHERE product.id = ?2",nativeQuery = true)

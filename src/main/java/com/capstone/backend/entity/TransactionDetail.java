@@ -30,7 +30,7 @@ public class TransactionDetail {
     @Column(name = "total_amount")
     private String totalAmount;
     @Column(name = "old_id",insertable = false,updatable = false)
-    private String oldId;
+        private String oldId;
     @Column(name = "credit")
     private BigDecimal credit;
 

@@ -25,8 +25,8 @@ public class ProductFacade {
         return product.hasStock(id,quantity);
     }
 
-    public List<Merchandise> getAllMerchandise() {
-        return product.getAllMerchandise();
+    public List<Merchandise> getAllMerchandise(String filter) {
+        return product.getAllMerchandise(filter);
     }
 
     public List<Merchandise> findMerchandiseBySearch(String search) {

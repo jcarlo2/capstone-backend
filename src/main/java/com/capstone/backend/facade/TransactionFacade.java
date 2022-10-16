@@ -87,4 +87,24 @@ public class TransactionFacade {
     public void deleteAll(@NotNull String id) {
         service.deleteAll(id.substring(3));
     }
+
+    public List<TransactionDetail> getAllArchivedReport() {
+        return service.getAllArchivedReport();
+    }
+
+    public List<TransactionDetail> getArchivedReportBySearch(String search) {
+        return service.getArchivedReportBySearch(search);
+    }
+
+    public List<TransactionDetail> getAllArchivedReportByDate(String start, String end) {
+        return service.getAllArchivedReportByDate(start,end);
+    }
+
+    public List<TransactionDetail> getAllArchivedReportByEnd(String end) {
+        return service.getAllArchivedReportByEnd(end);
+    }
+
+    public List<TransactionDetail> getAllArchivedReportByStart(String start) {
+        return service.getAllArchivedReportByStart(start);
+    }
 }

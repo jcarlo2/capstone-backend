@@ -1,21 +1,19 @@
 package com.capstone.backend.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
 @Table(name = "null_report", schema = "retail_management")
 @Entity(name = "null_report")
 public class NullReport {
-    @Id
-    @Column(name = "id")
+
+    @Column(name = "id") @Id
     private String id;
     @Column(name = "user")
     private String user;
@@ -27,4 +25,6 @@ public class NullReport {
     private String timestamp;
     @Column(name = "link")
     private String link;
+    @Column(name = "is_valid")
+    private String isValid;
 }

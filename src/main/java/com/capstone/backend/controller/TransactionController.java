@@ -33,9 +33,19 @@ public class TransactionController {
         return facade.getAllReport();
     }
 
+    @GetMapping("/get-all-archived-report")
+    public List<TransactionDetail> getAllArchivedReport() {
+        return facade.getAllArchivedReport();
+    }
+
     @GetMapping("/search-transaction")
-    public List<TransactionDetail> getReportBySearch(@RequestParam(name = "search") String search) {
+    public List<TransactionDetail> getReportBySearch(@RequestParam String search) {
         return facade.getReportBySearch(search);
+    }
+
+    @GetMapping("/search-archived-transaction")
+    public List<TransactionDetail> getArchivedReportBySearch(@RequestParam String search) {
+        return facade.getArchivedReportBySearch(search);
     }
 
     @GetMapping("/search-start")
@@ -43,14 +53,29 @@ public class TransactionController {
         return facade.getAllReportByStart(start);
     }
 
+    @GetMapping("/search-archived-start")
+    public List<TransactionDetail> getAllArchivedReportByStart(@RequestParam String start) {
+        return facade.getAllArchivedReportByStart(start);
+    }
+
     @GetMapping("/search-end")
     public List<TransactionDetail> getAllReportByEnd(@RequestParam String end) {
         return facade.getAllReportByEnd(end);
     }
 
+    @GetMapping("/search-archived-end")
+    public List<TransactionDetail> getAllArchivedReportByEnd(@RequestParam String end) {
+        return facade.getAllArchivedReportByEnd(end);
+    }
+
     @GetMapping("/search-date")
     public List<TransactionDetail> getAllReportByDate(@RequestParam String start, @RequestParam String end) {
         return facade.getAllReportByDate(start,end);
+    }
+
+    @GetMapping("/search-archived-date")
+    public List<TransactionDetail> getAllArchivedReportByDate(@RequestParam String start, @RequestParam String end) {
+        return facade.getAllArchivedReportByDate(start,end);
     }
 
     @GetMapping("/new-report-id")

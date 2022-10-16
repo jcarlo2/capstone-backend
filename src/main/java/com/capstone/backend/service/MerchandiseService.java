@@ -22,22 +22,26 @@ public class MerchandiseService {
         this.discountRepository = discountRepository;
     }
 
-    public List<Merchandise> getAllMerchandise() {
-        return productRepository.findAllByOrderByQuantityPerPiecesDesc();
+    public List<Merchandise> getAllMerchandise(@NotNull String filter) {
+        if(filter.equalsIgnoreCase("Filter By Name")) return productRepository.findAllByOrderByName();
+        else if(filter.equalsIgnoreCase("Filter By Stock H-L")) return productRepository.findAllByOrderByQuantityPerPiecesDesc();
+        else if(filter.equalsIgnoreCase("Filter By Stock L-H")) return productRepository.findAllByOrderByQuantityPerPieces();
+        else if(filter.equalsIgnoreCase("Filter By Price H-L")) return productRepository.findAllByOrderByPriceDesc();
+        else if(filter.equalsIgnoreCase("Filter By Price L-H")) return productRepository.findAllByOrderByPrice();
+        return productRepository.findAllByOrderById();
     }
 
-    public List<Merchandise> findMerchandiseBySearch(String search) {
-        List<Merchandise> list = productRepository.findAllByOrderByQuantityPerPiecesDesc();
-        return contains(search,list);
+    public List<Merchandise> findMerchandiseBySearch(@NotNull String search) {
+        if(search.chars().allMatch(Character::isDigit)) return productRepository.findAllByPriceLessThanEqualOrderByPriceDesc(search);
+        return contains(search,productRepository.findAllByOrderById());
     }
 
     public List<Merchandise> contains(String search, @NotNull List<Merchandise> list) {
         search = search.toLowerCase();
         List<Merchandise> newList = new ArrayList<>();
             for(Merchandise merchandise : list) {
-                if(merchandise.getId().toLowerCase().contains(search)
-                || merchandise.getName().toLowerCase().contains(search)
-                || merchandise.getPrice().toLowerCase().contains(search)) {
+                if(merchandise.getName().toLowerCase().startsWith(search)
+                || merchandise.getId().toLowerCase().startsWith(search)) {
                     newList.add(merchandise);
                 }
             }

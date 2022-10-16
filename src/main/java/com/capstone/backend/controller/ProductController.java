@@ -20,8 +20,8 @@ public class ProductController {
     }
 
     @GetMapping("/all-merchandise")
-    public ResponseEntity<List<Merchandise>> findAllMerchandise() {
-        return new ResponseEntity<>(facade.getAllMerchandise(), HttpStatus.OK);
+    public ResponseEntity<List<Merchandise>> findAllMerchandise(String filter) {
+        return new ResponseEntity<>(facade.getAllMerchandise(filter), HttpStatus.OK);
     }
 
     @GetMapping("/search-merchandise")

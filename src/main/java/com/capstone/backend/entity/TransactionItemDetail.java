@@ -30,6 +30,8 @@ public class TransactionItemDetail {
     private String discountPercentage;
     @Column(name = "total_amount")
     private String totalAmount;
+    @Column(name = "capital")
+    private String capital;
     @Column(name = "unique_id")
     private String uniqueId;
 
