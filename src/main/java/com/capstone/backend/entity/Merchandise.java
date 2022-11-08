@@ -18,9 +18,7 @@ import javax.persistence.Table;
 @Table(name = "product", schema = "retail_management")
 @Entity(name = "product")
 public class Merchandise {
-
-    @Id
-    @Column(name = "id")
+    @Id @Column(name = "id")
     private String id;
     @Column(name = "name")
     private String name;
@@ -34,4 +32,15 @@ public class Merchandise {
     private String quantityPerBox;
     @Column(name = "capital")
     private String capital;
+    @Column(name = "is_active")
+    private String isActive;
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (!(o instanceof Merchandise c))  return false;
+        return c.getName().equals(name)
+                && c.getPrice().equals(price)
+                && c.getCapital().equals(capital);
+    }
 }

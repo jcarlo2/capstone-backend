@@ -12,8 +12,7 @@ import javax.persistence.*;
 @Table(name = "null_report", schema = "retail_management")
 @Entity(name = "null_report")
 public class NullReport {
-
-    @Column(name = "id") @Id
+    @Id @Column(name = "id")
     private String id;
     @Column(name = "user")
     private String user;
@@ -27,4 +26,6 @@ public class NullReport {
     private String link;
     @Column(name = "is_valid")
     private String isValid;
+    @Column(name = "reason")
+    private String reason;
 }

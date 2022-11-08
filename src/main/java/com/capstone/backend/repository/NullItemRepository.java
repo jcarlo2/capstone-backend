@@ -23,4 +23,8 @@ public interface NullItemRepository extends CrudRepository<NullReportItem,String
     void updateByReportIdAndId(Integer quantity, String discount, String total, String reportId, String productId);
 
     List<NullReportItem> findAllByReportIdOrderByQuantityDesc(String id);
+
+    @Transactional @Modifying
+    @Query(value = "DELETE FROM null_item WHERE report_id = ?1 ",nativeQuery = true)
+    void deleteExistingItems(String id);
 }

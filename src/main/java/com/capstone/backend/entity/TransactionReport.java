@@ -2,6 +2,7 @@ package com.capstone.backend.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.Column;
@@ -12,12 +13,13 @@ import java.math.BigDecimal;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "transaction_report", schema = "retail_management")
 @Entity(name = "transaction_report")
 @ToString
-public class TransactionDetail {
-    @Id
-    @Column(name = "id")
+public class TransactionReport {
+
+    @Id @Column(name = "id")
     private String id;
     @Column(name = "user")
     private String user;
@@ -30,10 +32,7 @@ public class TransactionDetail {
     @Column(name = "total_amount")
     private String totalAmount;
     @Column(name = "old_id",insertable = false,updatable = false)
-        private String oldId;
+    private String oldId;
     @Column(name = "credit")
     private BigDecimal credit;
-
-    public TransactionDetail() {
-    }
 }

@@ -1,24 +1,29 @@
 package com.capstone.backend.facade;
 
-import com.capstone.backend.entity.DeliveryDetail;
-import com.capstone.backend.entity.DeliveryItemDetail;
-import com.capstone.backend.entity.NullReport;
-import com.capstone.backend.entity.NullReportItem;
+import com.capstone.backend.entity.*;
+import com.capstone.backend.service.EntityConverter;
 import com.capstone.backend.service.InventoryService;
 import com.capstone.backend.service.MerchandiseService;
+import com.capstone.backend.service.TransactionService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
 public class InventoryFacade {
     private final InventoryService service;
+    private final TransactionService transaction;
     private final MerchandiseService merchandise;
+    private final EntityConverter converter;
 
-    public InventoryFacade(InventoryService service, MerchandiseService merchandise) {
+    public InventoryFacade(InventoryService service, TransactionService transaction, MerchandiseService merchandise, EntityConverter converter) {
         this.service = service;
+        this.transaction = transaction;
         this.merchandise = merchandise;
+        this.converter = converter;
     }
 
     public Boolean saveNullReport(NullReport report) {
@@ -27,7 +32,7 @@ public class InventoryFacade {
 
     public Boolean saveReturnReportItem(@NotNull List<NullReportItem> itemList) {
         for(NullReportItem item : itemList) {
-            if(item.getReason().equalsIgnoreCase("Return")) {
+            if(item.getReason().equals("Change")) {
                 merchandise.updateProductQuantity(item.getQuantity(),item.getId());
             }
         }
@@ -38,15 +43,16 @@ public class InventoryFacade {
         return service.generateNullId();
     }
 
-    public void saveDeliveryReportItem(@NotNull List<DeliveryItemDetail> itemList) {
-        for(DeliveryItemDetail item : itemList) {
-            merchandise.updateProductQuantity(Integer.parseInt(item.getQuantity()), item.getProductId());
+    public void saveDeliveryReportItem(@NotNull List<DeliveryReportItem> itemList) {
+        for(DeliveryReportItem item : itemList) {
+            merchandise.updateProductQuantity(item.getQuantity(), item.getProductId());
         }
+        service.deleteExistingDeliveryItemsByReportId(itemList.get(0).getUniqueId());
         service.saveDeliveryReportItem(itemList);
     }
 
-    public void saveDeliveryReport(DeliveryDetail item) {
-        service.saveDeliveryReport(item);
+    public void saveDeliveryReport(DeliveryReport report) {
+        service.saveDeliveryReport(report);
     }
 
     public String generateDeliveryId() {
@@ -65,54 +71,162 @@ public class InventoryFacade {
         for(NullReportItem item : itemList) {
             merchandise.updateProductQuantity(-1 * item.getQuantity(),item.getId());
         }
+        service.deleteExistingNullItemsByReportId(itemList.get(0).getReportId());
         service.saveNullItem(itemList);
     }
 
-    public List<NullReport> getAllNullReport(String isValid) {
-        return service.getAllNullReport(isValid);
+    public List<NullReportHistory> findAllArchivedNullReport() {
+        return service.findAllArchivedNullReport();
     }
 
-    public List<DeliveryDetail> getAllDeliveryReport(String isValid) {
-        return service.getAllDeliveryReport(isValid);
+    public List<DeliveryReportHistory> findAllArchivedDeliveryReport() {
+        return service.findAllArchivedDeliveryReport();
     }
 
-    public List<DeliveryDetail> getAllDeliveryReportByDate(String isValid, String start, String end) {
-        return service.getAllDeliveryReportByDate(isValid,start,end);
+    public List<DeliveryReportHistory> findAllArchivedDeliveryReportByDate(String start, String end) {
+        return service.findAllArchivedDeliveryReportByDate(start,end);
     }
 
-    public List<NullReport> getAllNullReportByDate(String isValid, String start, String end) {
-        return service.getAllNullReportByDate(isValid,start,end);
+    public List<NullReportHistory> findAllArchivedNullReportByDate(String start, String end) {
+        return service.findAllArchivedNullReportByDate(start,end);
     }
 
-    public List<DeliveryDetail> getAllDeliveryReportByEnd(String isValid, String end) {
-        return service.getAllDeliveryReportByEnd(isValid,end);
+    public List<DeliveryReportHistory> findAllArchivedDeliveryReportByEnd(String end) {
+        return service.findAllArchivedDeliveryReportByEnd(end);
     }
 
-    public List<NullReport> getAllNullReportByEnd(String isValid, String end) {
-        return service.getAllNullReportByEnd(isValid,end);
+    public List<NullReportHistory> findAllArchivedNullReportByEnd(String end) {
+        return service.findAllArchivedNullReportByEnd(end);
     }
 
-    public List<DeliveryDetail> getAllDeliveryReportByStart(String isValid, String start) {
-        return service.getAllDeliveryReportByStart(isValid,start);
+    public List<DeliveryReportHistory> findAllArchivedDeliveryReportByStart(String start) {
+        return service.findAllArchivedDeliveryReportByStart(start);
     }
 
-    public List<NullReport> getAllNullReportByStart(String isValid, String start) {
-        return service.getAllNullReportByStart(isValid,start);
+    public List<NullReportHistory> findAllArchivedNullReportByStart(String start) {
+        return service.findAllArchivedNullReportByStart(start);
     }
 
-    public List<DeliveryDetail> getAllDeliveryReportBySearch(String isValid, String search) {
-        return service.getAllDeliveryReportBySearch(isValid,search);
+    public List<DeliveryReportHistory> findAllArchivedDeliveryReportBySearch(String search) {
+        return service.findAllArchivedDeliveryReportBySearch(search);
     }
 
-    public List<NullReport> getAllNullReportBySearch(String isValid, String search) {
-        return service.getAllNullReportBySearch(isValid,search);
+    public List<NullReportHistory> findAllArchivedNullReportBySearch(String search) {
+        return service.findAllArchivedNullReportBySearch(search);
     }
 
-    public List<NullReportItem> getAllNullItem(String id) {
-        return service.getAllNullItem(id);
+    public List<NullReportItemHistory> findAllNullItems(String id, String timestamp) {
+        if(service.existsNullReportByIdAndTimestamp(id,timestamp)) return service.findAllNullItemsHistory(id,timestamp);
+        return converter.convertNullReportItem(service.findAllNullItem(id),timestamp,id);
     }
 
-    public List<DeliveryItemDetail> getAllDeliveryItem(String id) {
-        return service.getAllDeliveryItem(id);
+    public List<DeliveryReportItemHistory> findAllDeliveryItems(String id, String timestamp) {
+        if(service.existDeliveryReportByIdAndTimestamp(id,timestamp)) return service.findAllDeliveryItemsHistory(id,timestamp);
+        return converter.convertDeliveryReportItem(service.findAllDeliveryItems(id),timestamp,id);
+    }
+
+    public void archiveDelivery(String id) {
+        DeliveryReport report = service.findDeliveryReportById(id);
+        String timestamp = new Timestamp(System.currentTimeMillis()).toString();
+        if(report != null) {
+            List<DeliveryReportItem> itemList = service.getAllArchivedDeliveryReportItems(id);
+            for(DeliveryReportItem item : itemList) {
+                merchandise.updateProductQuantity(-1 * item.getQuantity(),item.getProductId());
+                service.archiveDeliveryHistory(
+                        converter.convertDeliveryReport(report,timestamp),
+                        converter.convertDeliveryReportItem(itemList,timestamp,report.getId())
+                );
+            }
+        }
+        service.archiveDelivery(id);
+    }
+
+    public void archiveNullReport(String id) {
+        NullReport report = service.findNullReportById(id);
+        String timestamp = new Timestamp(System.currentTimeMillis()).toString();
+        if(report != null) {
+            List<NullReportItem> itemList = service.getAllArchivedNullReportItems(id);
+            for(NullReportItem item : itemList) {
+                merchandise.updateProductQuantity(item.getQuantity(),item.getId());
+            }
+            service.archiveNullHistory(
+                    converter.convertNullReport(report,timestamp),
+                    converter.convertNullReportItem(itemList,timestamp,report.getId())
+            );
+        }
+        service.archiveNull(id);
+    }
+
+    // Check if still needed
+    public boolean archivedNullReportWithLink(String link, String id) {
+        if(service.isExistByIdAndValid(service.forwardId(id))) return false;
+        service.invalidateNullReportByLink(id);
+        transaction.invalidateReport(link);
+        service.invalidateDeliveryReportByLink(link);
+        link = transaction.reverseId(link);
+        transaction.validateReport(link);
+        service.validateNullReportByLink(link);
+        service.validateDeliveryReportByLink(link);
+        // reflect to product stock
+        return true;
+    }
+
+    public String generateNullIdForReturn(String link) {
+        String reverse = transaction.reverseId(link);
+        if(service.existByLink(reverse)) {
+           NullReport report = service.findNullByLink(reverse);
+           return service.forwardId(report.getId());
+        }
+        return service.generateNullId();
+    }
+
+    public List<NullReportHistory> getAllNullAndDeliveryReport() {
+        List<NullReportHistory> nullList = service.findAllNullReportHistory();
+        nullList.addAll(converter.allDeliveryHistoryToNullHistory(service.findAllDeliveryReportHistory()));
+        service.findAllValidNullReport("1").forEach((r) -> nullList.add(converter.convertNullReport(r,r.getTimestamp())));
+        service.findAllValidDeliveryReport("1").forEach((r) -> nullList.add(converter.convertDeliveryToNullHistory(r,r.getTimestamp())));
+        nullList.sort(Comparator.comparing(NullReportHistory::getTimestamp).reversed());
+        return nullList;
+    }
+
+    public List<NullReport> getAllNullReport() {
+        return service.findAllValidNullReport("1");
+    }
+
+    public List<DeliveryReport> getAllDeliveryReport() {
+        return service.findAllValidDeliveryReport("1");
+    }
+
+    public List<DeliveryReport> getAllDeliveryReportByDate(String start, String end) {
+        return service.getAllDeliveryReportByDate(start,end);
+    }
+
+    public List<NullReport> getAllNullReportByDate(String start, String end) {
+        return service.findAllNullReportByDate(start,end);
+    }
+
+    public List<DeliveryReport> getAllDeliveryReportByEnd(String end) {
+        return service.findAllDeliveryReportByEnd(end);
+    }
+
+    public List<NullReport> getAllNullReportByEnd(String end) {
+        return service.findAllNullReportByEnd(end);
+
+    }
+
+    public List<DeliveryReport> getAllDeliveryReportByStart(String start) {
+        return service.findAllDeliveryReportByStart(start);
+    }
+
+    public List<NullReport> getAllNullReportByStart(String start) {
+        return service.findAllNullReportByStart(start);
+    }
+
+    public List<DeliveryReport> getAllDeliveryReportBySearch(String search) {
+        return service.findAllDeliveryReportBySearch(search);
+    }
+
+    public List<NullReport> getAllNullReportBySearch(String search) {
+        return service.findAllNullReportBySearch(search);
     }
 }

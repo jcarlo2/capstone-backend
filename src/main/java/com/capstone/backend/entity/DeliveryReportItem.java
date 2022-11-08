@@ -11,9 +11,8 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Table(name = "product_item", schema = "retail_management")
 @Entity(name = "product_item")
-public class DeliveryItemDetail {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class DeliveryReportItem {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "no")
     private String num;
     @Column(name = "prod_id")
@@ -21,7 +20,7 @@ public class DeliveryItemDetail {
     @Column(name = "name")
     private String name;
     @Column(name = "quantity_pieces")
-    private String quantity;
+    private Integer quantity;
     @Column(name = "total_price")
     private String totalPrice;
     @Column(name = "discount_percent")
@@ -30,4 +29,6 @@ public class DeliveryItemDetail {
     private String totalAmount;
     @Column(name = "unique_id")
     private String uniqueId;
+    @Column(name = "capital")
+    private String capital;
 }

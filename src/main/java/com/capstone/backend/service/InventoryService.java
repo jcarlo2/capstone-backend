@@ -1,33 +1,37 @@
 package com.capstone.backend.service;
 
-import com.capstone.backend.entity.DeliveryDetail;
-import com.capstone.backend.entity.DeliveryItemDetail;
-import com.capstone.backend.entity.NullReport;
-import com.capstone.backend.entity.NullReportItem;
-import com.capstone.backend.repository.DeliveryDetailRepository;
-import com.capstone.backend.repository.DeliveryItemRepository;
-import com.capstone.backend.repository.NullItemRepository;
-import com.capstone.backend.repository.NullReportRepository;
+import com.capstone.backend.entity.*;
+import com.capstone.backend.repository.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class InventoryService {
     private final NullReportRepository nullReportRepository;
     private final NullItemRepository nullItemRepository;
-    private final DeliveryItemRepository deliveryItemRepository;
-    private final DeliveryDetailRepository deliveryRepository;
+    private final DeliveryReportItemRepository deliveryReportItemRepository;
+    private final DeliveryReportRepository deliveryRepository;
+    private final DeliveryReportHistoryRepository deliveryReportHistoryRepository;
+    private final DeliveryReportItemHistoryRepository deliveryReportItemHistoryRepository;
+    private final NullReportHistoryRepository nullReportHistoryRepository;
+    private final NullReportItemHistoryRepository nullReportItemHistoryRepository;
 
-    public InventoryService(NullReportRepository reportRepository, NullItemRepository itemRepository, DeliveryItemRepository deliveryItemRepository, DeliveryDetailRepository deliveryRepository) {
+    public InventoryService(NullReportRepository reportRepository, NullItemRepository itemRepository, DeliveryReportItemRepository deliveryReportItemRepository, DeliveryReportRepository deliveryRepository, DeliveryReportHistoryRepository deliveryReportHistoryRepository, DeliveryReportItemHistoryRepository deliveryReportItemHistoryRepository, NullReportHistoryRepository nullReportHistoryRepository, NullReportItemHistoryRepository nullReportItemHistoryRepository) {
         this.nullReportRepository = reportRepository;
         this.nullItemRepository = itemRepository;
-        this.deliveryItemRepository = deliveryItemRepository;
+        this.deliveryReportItemRepository = deliveryReportItemRepository;
         this.deliveryRepository = deliveryRepository;
+        this.deliveryReportHistoryRepository = deliveryReportHistoryRepository;
+        this.deliveryReportItemHistoryRepository = deliveryReportItemHistoryRepository;
+        this.nullReportHistoryRepository = nullReportHistoryRepository;
+        this.nullReportItemHistoryRepository = nullReportItemHistoryRepository;
     }
 
-    public Boolean saveReport(@NotNull NullReport report) {
+    public boolean saveReport(@NotNull NullReport report) {
         if(!report.getLink().equals("") && nullReportRepository.existsByLink(report.getLink())) {
             NullReport rep = nullReportRepository.findByLink(report.getLink());
             report.setId(rep.getId());
@@ -36,13 +40,26 @@ public class InventoryService {
         return this.nullReportRepository.existsById(report.getId());
     }
 
-    public Boolean saveReportItem(@NotNull List<NullReportItem> itemList) {
+    public NullReport findNullByLink(String link) {
+        return nullReportRepository.findByLink(link);
+    }
+
+    public DeliveryReport findDeliveryByLink(String link) {
+        return deliveryRepository.findByLink(link);
+    }
+
+
+    public boolean existByLink(String link) {
+        return nullReportRepository.existsByLink(link);
+    }
+
+    public boolean saveReportItem(@NotNull List<NullReportItem> itemList) {
         String link = itemList.get(0).getLink();
         String id = "";
-        if(nullReportRepository.existsByLink(link)) id = updateExistingItemList(link,itemList);
+        if(nullReportRepository.existsByLink(link)) id = updateExistingNullItemList(link,itemList);
         else {
             for(NullReportItem item : itemList) {
-                if(item.getReason().equalsIgnoreCase("Exp/Dmg")) {
+                if(item.getReason().equals("Exp/Dmg")) {
                     nullItemRepository.save(item);
                     id = item.getReportId();
                 }
@@ -51,7 +68,7 @@ public class InventoryService {
         return nullItemRepository.existsByReportId(id);
     }
 
-    public String updateExistingItemList(String link,List<NullReportItem> itemList) {
+    public String updateExistingNullItemList(String link, List<NullReportItem> itemList) {
         String id = "";
         NullReport rep = nullReportRepository.findByLink(link);
         filterToDeleteNullItems(rep,itemList);
@@ -87,12 +104,20 @@ public class InventoryService {
         return "NP" + formatId + "-A0";
     }
 
-    public void saveDeliveryReportItem(List<DeliveryItemDetail> itemList) {
-        deliveryItemRepository.saveAll(itemList);
+    public boolean isExistByIdAndValid(String id) {
+        return nullReportRepository.existsByIdAndIsValid(id,"1");
     }
 
-    public void saveDeliveryReport(DeliveryDetail item) {
-        deliveryRepository.save(item);
+    public void saveDeliveryReportItem(List<DeliveryReportItem> itemList) {
+        deliveryReportItemRepository.saveAll(itemList);
+    }
+
+    public void saveDeliveryReport(@NotNull DeliveryReport report) {
+        if(!report.getLink().equals("") && deliveryRepository.existsByLink(report.getLink())) {
+            DeliveryReport rep = deliveryRepository.findByLink(report.getLink());
+            report.setId(rep.getId());
+        }
+        deliveryRepository.save(report);
     }
 
     public String generateDeliveryId() {
@@ -116,51 +141,186 @@ public class InventoryService {
         nullItemRepository.saveAll(itemList);
     }
 
-    public List<NullReport> getAllNullReport(String isValid) {
-        return nullReportRepository.findAllByIsValidOrderByTimestampDesc(isValid);
+    public List<NullReportHistory> findAllArchivedNullReport() {
+        return nullReportHistoryRepository.findAllByOrderByTimestampDesc();
     }
 
-    public List<DeliveryDetail> getAllDeliveryReport(String isValid) {
-        return deliveryRepository.findAllByIsValidOrderByTimestampDesc(isValid);
+    public List<DeliveryReportHistory> findAllArchivedDeliveryReport() {
+        return deliveryReportHistoryRepository.findAllByOrderByTimestampDesc();
     }
 
-    public List<DeliveryDetail> getAllDeliveryReportByDate(String isValid, String start, String end) {
-        return deliveryRepository.findAllByIsValidAndTimestampBetweenOrderByTimestampDesc(isValid,start,end);
+    public List<DeliveryReportHistory> findAllArchivedDeliveryReportByDate(String start, String end) {
+        return deliveryReportHistoryRepository.findAllByTimestampBetweenOrderByTimestampDesc(start,end);
     }
 
-    public List<NullReport> getAllNullReportByDate(String isValid, String start, String end) {
-        return nullReportRepository.findAllByIsValidAndTimestampBetweenOrderByTimestampDesc(isValid,start,end);
+    public List<NullReportHistory> findAllArchivedNullReportByDate(String start, String end) {
+        return nullReportHistoryRepository.findAllByTimestampBetweenOrderByTimestampDesc(start,end);
     }
 
-    public List<DeliveryDetail> getAllDeliveryReportByEnd(String isValid, String end) {
-        return deliveryRepository.findAllByIsValidAndTimestampLessThanEqualOrderByTimestampDesc(isValid,end);
+    public List<DeliveryReportHistory> findAllArchivedDeliveryReportByEnd(String end) {
+        return deliveryReportHistoryRepository.findAllByTimestampLessThanEqualOrderByTimestampDesc(end);
     }
 
-    public List<NullReport> getAllNullReportByEnd(String isValid, String end) {
-        return nullReportRepository.findAllByIsValidAndTimestampLessThanEqualOrderByTimestampDesc(isValid,end);
+    public List<NullReportHistory> findAllArchivedNullReportByEnd(String end) {
+        return nullReportHistoryRepository.findAllByTimestampLessThanEqualOrderByTimestampDesc(end);
     }
 
-    public List<DeliveryDetail> getAllDeliveryReportByStart(String isValid, String start) {
-        return deliveryRepository.findAllByIsValidAndTimestampGreaterThanEqualOrderByTimestampDesc(isValid,start);
+    public List<DeliveryReportHistory> findAllArchivedDeliveryReportByStart(String start) {
+        return deliveryReportHistoryRepository.findAllByTimestampGreaterThanEqualOrderByTimestampDesc(start);
     }
 
-    public List<NullReport> getAllNullReportByStart(String isValid, String start) {
-        return nullReportRepository.findAllByIsValidAndTimestampGreaterThanEqualOrderByTimestampDesc(isValid,start);
+    public List<NullReportHistory> findAllArchivedNullReportByStart(String start) {
+        return nullReportHistoryRepository.findAllByTimestampGreaterThanEqualOrderByTimestampDesc(start);
     }
 
-    public List<DeliveryDetail> getAllDeliveryReportBySearch(String isValid, String search) {
-        return deliveryRepository.findAllByIsValidAndIdContainsOrderByTimestampDesc(isValid,search);
+    public List<DeliveryReportHistory> findAllArchivedDeliveryReportBySearch(String search) {
+        return deliveryReportHistoryRepository.findAllByIdContainsOrLinkContainsOrderByTimestampDesc(search,search);
     }
 
-    public List<NullReport> getAllNullReportBySearch(String isValid, String search) {
-        return nullReportRepository.findAllByIsValidAndIdContainsOrLinkContainsOrderByTimestampDesc(isValid,search,search);
+    public List<NullReportHistory> findAllArchivedNullReportBySearch(String search) {
+        return nullReportHistoryRepository.findAllByIdContainsOrLinkContainsOrderByTimestampDesc(search,search);
     }
 
-    public List<NullReportItem> getAllNullItem(String id) {
+    public List<NullReportItem> findAllNullItem(String id) {
         return nullItemRepository.findAllByReportIdOrderByQuantityDesc(id);
     }
 
-    public List<DeliveryItemDetail> getAllDeliveryItem(String id) {
-        return deliveryItemRepository.findAllByUniqueIdOrderByQuantity(id);
+    public List<NullReportItemHistory> findAllNullItemsHistory(String id, String timestamp) {
+        return nullReportItemHistoryRepository.findAllByReportIdAndTimestamp(id,timestamp);
+    }
+
+    public boolean existsNullReportByIdAndTimestamp(String id, String timestamp) {
+       return nullReportHistoryRepository.existsByIdAndTimestamp(id,timestamp);
+    }
+
+    public List<DeliveryReportItem> findAllDeliveryItems(String id) {
+        return deliveryReportItemRepository.findAllByUniqueIdOrderByQuantity(id);
+    }
+
+    public void archiveDelivery(String id) {
+        deliveryRepository.archivedDelivery(id);
+    }
+
+    public void archiveNull(String id) {
+        nullReportRepository.invalidateNullReportById(id);
+    }
+
+    public List<NullReportItem> getAllArchivedNullReportItems(String id) {
+        return nullItemRepository.findAllByReportId(id);
+    }
+
+    public void invalidateNullReportByLink(String id) {
+        nullReportRepository.invalidateNullReportByLink(id);
+    }
+
+    public String forwardId(@NotNull String id) {
+        StringBuilder start = new StringBuilder(id.substring(0,17));
+        String end = id.substring(17);
+        int num = Integer.parseInt(end) + 1;
+        return start.append(num).toString();
+    }
+
+    public NullReport findNullReportById(String id) {
+        Optional<NullReport> opt = nullReportRepository.findById(id);
+        return opt.orElse(null);
+    }
+
+    public DeliveryReport findDeliveryReportById(String id) {
+        Optional<DeliveryReport> opt = deliveryRepository.findById(id);
+        return opt.orElse(null);
+    }
+
+    public void validateNullReportByLink(String link) {
+        nullReportRepository.validateNullReportByLink(link);
+    }
+
+    public void validateDeliveryReportByLink(String link) {
+        deliveryRepository.validateDeliveryReportByLink(link);
+    }
+
+    public void invalidateDeliveryReportByLink(String link) {
+        deliveryRepository.invalidateDeliveryReportByLink(link);
+    }
+
+    public List<DeliveryReportItem> getAllArchivedDeliveryReportItems(String id) {
+        return deliveryReportItemRepository.findAllByUniqueId(id);
+    }
+
+    public void archiveDeliveryHistory(DeliveryReportHistory report, List<DeliveryReportItemHistory> itemList) {
+        deliveryReportHistoryRepository.save(report);
+        deliveryReportItemHistoryRepository.saveAll(itemList);
+    }
+
+    public void archiveNullHistory(NullReportHistory report, List<NullReportItemHistory> itemList) {
+        nullReportHistoryRepository.save(report);
+        nullReportItemHistoryRepository.saveAll(itemList);
+    }
+
+    public List<NullReportHistory> findAllNullReportHistory() {
+        List<NullReportHistory> report = new ArrayList<>();
+        nullReportHistoryRepository.findAll().forEach(report::add);
+        return report;
+    }
+
+    public List<DeliveryReportHistory> findAllDeliveryReportHistory() {
+        List<DeliveryReportHistory> report = new ArrayList<>();
+        deliveryReportHistoryRepository.findAll().forEach(report::add);
+        return report;
+    }
+
+    public List<NullReport> findAllValidNullReport(String isValid) {
+        return nullReportRepository.findAllByIsValidOrderByTimestampDesc(isValid);
+    }
+
+    public List<DeliveryReport> findAllValidDeliveryReport(String isValid) {
+        return deliveryRepository.findAllByIsValidOrderByTimestampDesc(isValid);
+    }
+
+    public List<DeliveryReport> getAllDeliveryReportByDate(String start, String end) {
+        return deliveryRepository.findAllByIsValidAndTimestampBetweenOrderByTimestampDesc("1",start,end);
+    }
+
+    public List<NullReport> findAllNullReportByDate(String start, String end) {
+        return nullReportRepository.findAllByIsValidAndTimestampBetweenOrderByTimestampDesc("1",start,end);
+    }
+
+    public List<DeliveryReport> findAllDeliveryReportByEnd(String end) {
+        return deliveryRepository.findAllByIsValidAndTimestampLessThanEqualOrderByTimestampDesc("1",end);
+    }
+
+    public List<NullReport> findAllNullReportByEnd(String end) {
+        return nullReportRepository.findAllByIsValidAndTimestampLessThanEqualOrderByTimestampDesc("1",end);
+    }
+
+    public List<DeliveryReport> findAllDeliveryReportByStart(String start) {
+        return deliveryRepository.findAllByIsValidAndTimestampGreaterThanEqualOrderByTimestampDesc("1",start);
+    }
+
+    public List<NullReport> findAllNullReportByStart(String start) {
+        return nullReportRepository.findAllByIsValidAndTimestampGreaterThanEqualOrderByTimestampDesc("1",start);
+    }
+
+    public List<DeliveryReport> findAllDeliveryReportBySearch(String search) {
+        return deliveryRepository.findAllByIsValidAndIdContainsOrIsValidAndLinkContainsOrderByTimestampDesc("1",search,"1",search);
+    }
+
+    public List<NullReport> findAllNullReportBySearch(String search) {
+        return nullReportRepository.findAllByIsValidAndIdContainsOrIsValidAndLinkContainsOrderByTimestampDesc("1",search,"1",search);
+    }
+
+    public void deleteExistingDeliveryItemsByReportId(String id) {
+        deliveryReportItemRepository.deleteExistingItems(id);
+    }
+
+    public void deleteExistingNullItemsByReportId(String id) {
+        nullItemRepository.deleteExistingItems(id);
+    }
+
+    public boolean existDeliveryReportByIdAndTimestamp(String id, String timestamp) {
+        return deliveryReportHistoryRepository.existsByIdAndTimestamp(id,timestamp);
+    }
+
+    public List<DeliveryReportItemHistory> findAllDeliveryItemsHistory(String id, String timestamp) {
+        return deliveryReportItemHistoryRepository.findAllByReportIdAndTimestamp(id,timestamp);
     }
 }

@@ -1,7 +1,9 @@
 package com.capstone.backend.controller;
 
-import com.capstone.backend.entity.TransactionDetail;
-import com.capstone.backend.entity.TransactionItemDetail;
+import com.capstone.backend.entity.TransactionReport;
+import com.capstone.backend.entity.TransactionReportHistory;
+import com.capstone.backend.entity.TransactionReportItem;
+import com.capstone.backend.entity.TransactionReportItemHistory;
 import com.capstone.backend.facade.TransactionFacade;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,58 +26,83 @@ public class TransactionController {
     }
 
     @GetMapping("/is-exist-report-id")
-    public boolean isExistingReportId(@RequestParam(name = "id") String id) {
+    public boolean isExistingReportId(@RequestParam String id) {
         return facade.isExistingReportId(id);
     }
 
+    @GetMapping("/get-all-valid-report")
+    public List<TransactionReport> getAllValidReport() {
+        return facade.getAllValidReport();
+    }
+
     @GetMapping("/get-all-report")
-    public List<TransactionDetail> getAllReport() {
+    public List<TransactionReportHistory> getAllReport() {
         return facade.getAllReport();
     }
 
     @GetMapping("/get-all-archived-report")
-    public List<TransactionDetail> getAllArchivedReport() {
+    public List<TransactionReportHistory> getAllArchivedReport() {
         return facade.getAllArchivedReport();
     }
 
-    @GetMapping("/search-transaction")
-    public List<TransactionDetail> getReportBySearch(@RequestParam String search) {
-        return facade.getReportBySearch(search);
+    @GetMapping("/search-valid-transaction")
+    public List<TransactionReport> getAllValidReportBySearch(@RequestParam String search) {
+        return facade.getAllValidReportBySearch(search);
     }
 
     @GetMapping("/search-archived-transaction")
-    public List<TransactionDetail> getArchivedReportBySearch(@RequestParam String search) {
+    public List<TransactionReportHistory> getArchivedReportBySearch(@RequestParam String search) {
         return facade.getArchivedReportBySearch(search);
     }
 
+    @GetMapping("/search-all-transaction")
+    public List<TransactionReportHistory> getAllReportBySearch(@RequestParam String search) {
+        return facade.getAllReportBySearch(search);
+    }
+
     @GetMapping("/search-start")
-    public List<TransactionDetail> getAllReportByStart(@RequestParam String start) {
-        return facade.getAllReportByStart(start);
+    public List<TransactionReport> getAllValidReportByStart(@RequestParam String start) {
+        return facade.getAllValidReportByStart(start);
     }
 
     @GetMapping("/search-archived-start")
-    public List<TransactionDetail> getAllArchivedReportByStart(@RequestParam String start) {
+    public List<TransactionReportHistory> getAllArchivedReportByStart(@RequestParam String start) {
         return facade.getAllArchivedReportByStart(start);
     }
 
+    @GetMapping("/search-all-start")
+    public List<TransactionReportHistory> getAllReportByStart(@RequestParam String start) {
+        return facade.getAllReportByStart(start);
+    }
+
     @GetMapping("/search-end")
-    public List<TransactionDetail> getAllReportByEnd(@RequestParam String end) {
-        return facade.getAllReportByEnd(end);
+    public List<TransactionReport> getAllValidReportByEnd(@RequestParam String end) {
+        return facade.getAllValidReportByEnd(end);
     }
 
     @GetMapping("/search-archived-end")
-    public List<TransactionDetail> getAllArchivedReportByEnd(@RequestParam String end) {
+    public List<TransactionReportHistory> getAllArchivedReportByEnd(@RequestParam String end) {
         return facade.getAllArchivedReportByEnd(end);
     }
 
+    @GetMapping("/search-all-end")
+    public List<TransactionReportHistory> getAllReportByEnd(@RequestParam String end) {
+        return facade.getAllReportByEnd(end);
+    }
+
     @GetMapping("/search-date")
-    public List<TransactionDetail> getAllReportByDate(@RequestParam String start, @RequestParam String end) {
-        return facade.getAllReportByDate(start,end);
+    public List<TransactionReport> getAllValidReportByDate(@RequestParam String start, @RequestParam String end) {
+        return facade.getAllValidReportByDate(start,end);
     }
 
     @GetMapping("/search-archived-date")
-    public List<TransactionDetail> getAllArchivedReportByDate(@RequestParam String start, @RequestParam String end) {
+    public List<TransactionReportHistory> getAllArchivedReportByDate(@RequestParam String start, @RequestParam String end) {
         return facade.getAllArchivedReportByDate(start,end);
+    }
+
+    @GetMapping("/search-all-date")
+    public List<TransactionReportHistory> getAllReportByDate(@RequestParam String start, @RequestParam String end) {
+        return facade.getAllReportByDate(start,end);
     }
 
     @GetMapping("/new-report-id")
@@ -89,33 +116,32 @@ public class TransactionController {
     }
 
     @GetMapping("/find-all-item")
-    public List<TransactionItemDetail> findAllItemById(@RequestParam String id) {
-        return facade.findAllItemById(id);
+    public List<TransactionReportItemHistory> findAllItemById(@RequestParam String id, @RequestParam String timestamp) {
+        return facade.findAllItemById(id,timestamp);
     }
 
     @PostMapping("/save-report-item")
-    public Boolean saveReportItem(@RequestBody List<TransactionItemDetail> itemList) {
+    public Boolean saveReportItem(@RequestBody List<TransactionReportItem> itemList) {
         return facade.saveReportItem(itemList);
     }
 
     @PostMapping("/save-return-report-item")
-    public Boolean saveReturnReportItem(@RequestBody List<TransactionItemDetail> itemList) {
+    public Boolean saveReturnReportItem(@RequestBody List<TransactionReportItem> itemList) {
         return facade.saveReturnReportItem(itemList);
     }
 
     @PostMapping("/save-report")
-    public Boolean saveReport(@RequestBody TransactionDetail report) {
+    public Boolean saveReport(@RequestBody TransactionReport report) {
         return facade.saveReport(report);
     }
 
-    @PostMapping("/delete")
-    public void delete(@RequestBody String id) {
-        facade.delete(id);
+    @PostMapping("/archive")
+    public boolean archive(@RequestParam String id) {
+        return facade.archive(id);
     }
 
-    @PostMapping("/delete-all")
-    public void deleteAll(@RequestBody String id) {
-        facade.deleteAll(id);
+    @PostMapping("/archive-all")
+    public void archiveAll(@RequestParam String id) {
+        facade.archiveAll(id);
     }
-
 }

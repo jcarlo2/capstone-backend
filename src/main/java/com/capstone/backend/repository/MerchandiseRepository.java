@@ -11,16 +11,26 @@ import java.util.List;
 
 @Repository
 public interface MerchandiseRepository extends CrudRepository<Merchandise, String> {
-    List<Merchandise> findAllByOrderById();
-    List<Merchandise> findAllByOrderByName();
-    List<Merchandise> findAllByOrderByQuantityPerPiecesDesc();
-    List<Merchandise> findAllByOrderByQuantityPerPieces();
-    List<Merchandise> findAllByOrderByPrice();
-    List<Merchandise> findAllByOrderByPriceDesc();
+    List<Merchandise> findAllByIsActiveOrderById(String isActive);
+    List<Merchandise> findAllByIsActiveOrderByName(String isActive);
+    List<Merchandise> findAllByIsActiveOrderByQuantityPerPiecesDesc(String isActive);
+    List<Merchandise> findAllByIsActiveOrderByQuantityPerPieces(String isActive);
+    List<Merchandise> findAllByIsActiveOrderByPrice(String isActive);
+    List<Merchandise> findAllByIsActiveOrderByPriceDesc(String isActive);
 
-    List<Merchandise> findAllByPriceLessThanEqualOrderByPriceDesc(String search);
+    List<Merchandise> findAllByPriceLessThanEqualAndIsActiveOrderByPriceDesc(String search,String isActive);
 
     @Modifying @Transactional
     @Query(value = "UPDATE product SET quantity_per_pieces = product.quantity_per_pieces + ?1 WHERE product.id = ?2",nativeQuery = true)
     void updateProductQuantity(Integer quantity, String id);
+
+    @Modifying @Transactional
+    @Query(value = "UPDATE product SET name = ?2, price = ?3, capital = ?4 WHERE product.id = ?1",nativeQuery = true)
+    void updateProduct(String id, String name, String price, String capital);
+
+
+
+    @Transactional @Modifying
+    @Query(value = "UPDATE product SET is_active = ?2 WHERE id = ?1",nativeQuery = true)
+    void archiveProduct(String id, String isActive);
 }

@@ -1,7 +1,6 @@
 package com.capstone.backend.repository;
 
-import com.capstone.backend.entity.TransactionDetail;
-import org.jetbrains.annotations.NotNull;
+import com.capstone.backend.entity.TransactionReport;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -11,9 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Repository
-public interface TransactionReportRepository extends CrudRepository<TransactionDetail, String> {
+public interface TransactionReportRepository extends CrudRepository<TransactionReport, String> {
 
-    boolean existsById(@NotNull String id);
+    boolean existsByIdAndIsValid(String id, String isValid);
 
     @Modifying @Transactional
     @Query(value = "UPDATE transaction_report SET is_valid = 0 WHERE id = ?1",nativeQuery = true)
@@ -23,16 +22,16 @@ public interface TransactionReportRepository extends CrudRepository<TransactionD
     @Query(value = "UPDATE transaction_report SET is_valid = 1 WHERE id = ?1",nativeQuery = true)
     void validate(String id);
 
-    List<TransactionDetail> findByIsValidOrderByTimestampDesc(String isValid);
+    List<TransactionReport> findByIsValidOrderByTimestampDesc(String isValid);
 
-    List<TransactionDetail> findAllByIsValidAndTimestampGreaterThanEqualOrderByTimestampDesc(String isValid, String start);
+    List<TransactionReport> findAllByIsValidAndTimestampGreaterThanEqualOrderByTimestampDesc(String isValid, String start);
 
-    List<TransactionDetail> findAllByIsValidAndTimestampLessThanEqualOrderByTimestampDesc(String isValid, String end);
+    List<TransactionReport> findAllByIsValidAndTimestampLessThanEqualOrderByTimestampDesc(String isValid, String end);
 
-    List<TransactionDetail> findAllByIdContainsAndIsValidOrderByTimestampDesc(String search,String isValid);
+    List<TransactionReport> findAllByIdContainsAndIsValidOrderByTimestampDesc(String search, String isValid);
 
-    List<TransactionDetail> findAllByIsValidAndTimestampBetween(String isValid,String start,String end);
+    List<TransactionReport> findAllByIsValidAndTimestampBetween(String isValid, String start, String end);
 
-    List<TransactionDetail> findAllByIsValidOrderByTimestampDesc(String isValid);
+    List<TransactionReport> findAllByIsValidOrderByTimestampDesc(String isValid);
 
 }
