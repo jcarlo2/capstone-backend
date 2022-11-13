@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -20,7 +21,7 @@ public interface NullItemRepository extends CrudRepository<NullReportItem,String
 
     @Modifying @Transactional
     @Query(value = "UPDATE null_item SET quantity = ?1, discount = ?2, total_amount = ?3 WHERE report_id = ?4 AND id = ?5",nativeQuery = true)
-    void updateByReportIdAndId(Integer quantity, String discount, String total, String reportId, String productId);
+    void updateByReportIdAndId(Integer quantity, Double discount, BigDecimal total, String reportId, String productId);
 
     List<NullReportItem> findAllByReportIdOrderByQuantityDesc(String id);
 

@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -26,11 +27,15 @@ public interface MerchandiseRepository extends CrudRepository<Merchandise, Strin
 
     @Modifying @Transactional
     @Query(value = "UPDATE product SET name = ?2, price = ?3, capital = ?4 WHERE product.id = ?1",nativeQuery = true)
-    void updateProduct(String id, String name, String price, String capital);
+    void updateProduct(String id, String name, BigDecimal price, BigDecimal capital);
 
 
 
     @Transactional @Modifying
     @Query(value = "UPDATE product SET is_active = ?2 WHERE id = ?1",nativeQuery = true)
-    void archiveProduct(String id, String isActive);
+    void setProductIsActive(String id, String isActive);
+
+    @Transactional @Modifying
+    @Query(value = "UPDATE product SET is_active = 1, quantity_per_pieces = 0 WHERE id = ?1",nativeQuery = true)
+    void setProductActiveWithZeroQuantity(String id);
 }

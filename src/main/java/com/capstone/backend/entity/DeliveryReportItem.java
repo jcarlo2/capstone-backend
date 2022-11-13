@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 
 @Getter
 @AllArgsConstructor
@@ -22,13 +23,13 @@ public class DeliveryReportItem {
     @Column(name = "quantity_pieces")
     private Integer quantity;
     @Column(name = "total_price")
-    private String totalPrice;
+    private BigDecimal totalPrice;
     @Column(name = "discount_percent")
-    private String discountPercentage;
+    private Double discountPercentage;
     @Column(name = "total_amount")
-    private String totalAmount;
+    private BigDecimal totalAmount;
     @Column(name = "unique_id")
     private String uniqueId;
     @Column(name = "capital")
-    private String capital;
+    private BigDecimal capital;
 }

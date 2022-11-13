@@ -17,10 +17,14 @@ public interface MerchandiseDiscountRepository extends CrudRepository<Merchandis
     MerchandiseDiscount discount(String id, BigDecimal quantity);
 
     List<MerchandiseDiscount> findAllByIdAndIsValidOrderByDiscount(String id, String isValid);
-
+    MerchandiseDiscount findByIdAndQuantity(String id, Integer quantity);
     boolean existsByIdAndQuantity(String id, Integer quantity);
 
     @Transactional @Modifying
     @Query(value = "UPDATE product_discount SET discount = ?1, is_valid = 1 WHERE id = ?2 AND quantity = ?3", nativeQuery = true)
     void updateDiscount(Double discount, String id, Integer quantity);
+
+    @Transactional @Modifying
+    @Query(value = "DELETE FROM product_discount WHERE id = ?1 AND quantity = ?2", nativeQuery = true)
+    void archiveProductDiscount(String id, Integer quantity);
 }

@@ -2,6 +2,8 @@ package com.capstone.backend.controller;
 
 import com.capstone.backend.entity.*;
 import com.capstone.backend.facade.InventoryFacade;
+import com.capstone.backend.pojo.ProductSummary;
+import com.capstone.backend.pojo.SalesSummary;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -141,8 +143,8 @@ public class InventoryController {
     }
 
     @GetMapping("/get-all-null-and-delivery")
-    public List<NullReportHistory> getAllNullAndDeliveryReport() {
-        return facade.getAllNullAndDeliveryReport();
+    public List<NullReportHistory> findAllNullAndDeliveryReport() {
+        return facade.findAllNullAndDeliveryReport();
     }
 
     @GetMapping("/get-all-null-report")
@@ -193,5 +195,111 @@ public class InventoryController {
     @GetMapping("/get-all-null-report-search")
     public List<NullReport> getAllNullReportBySearch(@RequestParam String search) {
         return facade.getAllNullReportBySearch(search);
+    }
+
+    @GetMapping("/check-if-id-is-archived")
+    public boolean findIfIdExistFromNullAndDeliveryHistory(@RequestParam String id, @RequestParam String timestamp) {
+        return facade.findIfIdExistFromNullAndDeliveryHistory(id,timestamp);
+    }
+
+    @GetMapping("/get-all-null-and-delivery-search")
+    public List<NullReportHistory> findAllNullAndDeliveryReportBySearch(@RequestParam String search) {
+        return facade.findAllNullAndDeliveryReportBySearch(search);
+    }
+
+    @GetMapping("/get-all-null-and-delivery-date")
+    public List<NullReportHistory> findAllNullAndDeliveryReportByDate(@RequestParam String start, @RequestParam String end) {
+        return facade.findAllNullAndDeliveryReportByDate(start,end);
+    }
+
+    @GetMapping("/get-all-null-and-delivery-end")
+    public List<NullReportHistory> findAllNullAndDeliveryReportByEnd(@RequestParam String end) {
+        return facade.findAllNullAndDeliveryReportByEnd(end);
+    }
+
+    @GetMapping("/get-all-null-and-delivery-start")
+    public List<NullReportHistory> findAllNullAndDeliveryReportByStart(@RequestParam String start) {
+        return facade.findAllNullAndDeliveryReportByStart(start);
+    }
+
+    @GetMapping("/calculate-delivery-all")
+    public SalesSummary calculateAllDeliverySales() {
+        return facade.calculateAllDeliverySales();
+    }
+
+    @GetMapping("/calculate-delivery-date")
+    public SalesSummary calculateAllDeliverySales(@RequestParam String start, @RequestParam String end) {
+        return facade.calculateAllDeliverySalesByDate(start, end);
+    }
+
+    @GetMapping("/calculate-delivery-start")
+    public SalesSummary calculateAllDeliverySalesByStart(@RequestParam String start) {
+        return facade.calculateAllDeliverySalesByStart(start);
+    }
+
+    @GetMapping("/calculate-delivery-end")
+    public SalesSummary calculateAllDeliverySalesByEnd(@RequestParam String end) {
+        return facade.calculateAllDeliverySalesByEnd(end);
+    }
+
+    @GetMapping("/calculate-void-all")
+    public SalesSummary calculateAllVoidSales() {
+        return facade.calculateAllVoidSales();
+    }
+
+
+    @GetMapping("/calculate-void-start")
+    public SalesSummary calculateAllVoidSalesByStart(@RequestParam String start) {
+        return facade.calculateAllVoidSalesByStart(start);
+    }
+
+    @GetMapping("/calculate-void-end")
+    public SalesSummary calculateAllVoidSalesByEnd(@RequestParam String end) {
+        return facade.calculateAllVoidSalesByEnd(end);
+    }
+
+    @GetMapping("/calculate-void-date")
+    public SalesSummary calculateAllVoidSalesByDate(@RequestParam String start, @RequestParam String end) {
+        return facade.calculateAllVoidSalesByDate(start,end);
+    }
+
+    @GetMapping("/calculate-product-void-all")
+    public List<ProductSummary> calculateProductVoidAll() {
+        return facade.calculateProductVoidAll();
+    }
+
+    @GetMapping("/calculate-product-void-date")
+    public List<ProductSummary> calculateProductVoidByDate(@RequestParam String start, @RequestParam String end) {
+        return facade.calculateProductVoidByDate(start,end);
+    }
+
+    @GetMapping("/calculate-product-void-start")
+    public List<ProductSummary> calculateProductVoidByStart(@RequestParam String start) {
+        return facade.calculateProductVoidByStart(start);
+    }
+
+    @GetMapping("/calculate-product-void-end")
+    public List<ProductSummary> calculateProductVoidByEnd(@RequestParam String end) {
+        return facade.calculateProductVoidByEnd(end);
+    }
+
+    @GetMapping("/calculate-product-delivery-all")
+    public List<ProductSummary> calculateProductDeliveryAll() {
+        return facade.calculateProductDeliveryAll();
+    }
+
+    @GetMapping("/calculate-product-delivery-date")
+    public List<ProductSummary> calculateProductDeliveryByDate(@RequestParam String start, @RequestParam String end) {
+        return facade.calculateProductDeliveryByDate(start,end);
+    }
+
+    @GetMapping("/calculate-product-delivery-start")
+    public List<ProductSummary> calculateProductDeliveryStart(@RequestParam String start) {
+        return facade.calculateProductDeliveryByStart(start);
+    }
+
+    @GetMapping("/calculate-product-delivery-end")
+    public List<ProductSummary> calculateProductDeliveryEnd(@RequestParam String end) {
+        return facade.calculateProductDeliveryByEnd(end);
     }
 }

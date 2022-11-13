@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 
 @Getter @Setter
 @AllArgsConstructor
@@ -21,9 +22,9 @@ public class MerchandiseHistory {
     @Column(name = "name")
     private String name;
     @Column(name = "price")
-    private String price;
+    private BigDecimal price;
     @Column(name = "capital")
-    private String capital;
+    private BigDecimal capital;
     @Column(name = "created_at", updatable = false, insertable = false)
     private String createdAt;
 }

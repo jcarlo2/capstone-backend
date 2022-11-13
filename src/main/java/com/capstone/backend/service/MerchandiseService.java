@@ -2,7 +2,9 @@ package com.capstone.backend.service;
 
 import com.capstone.backend.entity.Merchandise;
 import com.capstone.backend.entity.MerchandiseDiscount;
+import com.capstone.backend.entity.MerchandiseDiscountHistory;
 import com.capstone.backend.entity.MerchandiseHistory;
+import com.capstone.backend.repository.MerchandiseDiscountHistoryRepository;
 import com.capstone.backend.repository.MerchandiseDiscountRepository;
 import com.capstone.backend.repository.MerchandiseHistoryRepository;
 import com.capstone.backend.repository.MerchandiseRepository;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -19,13 +22,15 @@ import java.util.Optional;
 @Service
 public class MerchandiseService {
     private final MerchandiseRepository merchandiseRepository;
-    private final MerchandiseDiscountRepository merchandiseDiscountRepository;
     private final MerchandiseHistoryRepository merchandiseHistoryRepository;
+    private final MerchandiseDiscountRepository merchandiseDiscountRepository;
+    private final MerchandiseDiscountHistoryRepository merchandiseDiscountHistoryRepository;
 
-    public MerchandiseService(MerchandiseRepository merchandiseRepository, MerchandiseDiscountRepository merchandiseDiscountRepository, MerchandiseHistoryRepository merchandiseHistoryRepository) {
+    public MerchandiseService(MerchandiseRepository merchandiseRepository, MerchandiseDiscountRepository merchandiseDiscountRepository, MerchandiseHistoryRepository merchandiseHistoryRepository, MerchandiseDiscountHistoryRepository merchandiseDiscountHistoryRepository) {
         this.merchandiseRepository = merchandiseRepository;
         this.merchandiseDiscountRepository = merchandiseDiscountRepository;
         this.merchandiseHistoryRepository = merchandiseHistoryRepository;
+        this.merchandiseDiscountHistoryRepository = merchandiseDiscountHistoryRepository;
     }
 
     public List<Merchandise> getAllMerchandise(@NotNull String filter) {
@@ -62,14 +67,14 @@ public class MerchandiseService {
         return merchandiseDiscountRepository.findAllByIdAndIsValidOrderByDiscount(id,"1");
     }
 
-    public List<MerchandiseDiscount> findAllInvalidDiscount(String id) {
-        return merchandiseDiscountRepository.findAllByIdAndIsValidOrderByDiscount(id,"0");
+    public List<MerchandiseDiscountHistory> findAllArchivedDiscountById(String id) {
+        return merchandiseDiscountHistoryRepository.findAllByIdOrderByTimestampDesc(id);
     }
 
     public boolean hasStock(String id, Integer quantity) {
         final Optional<Merchandise> merch = merchandiseRepository.findById(id);
         if(merch.isEmpty()) return false;
-        return Integer.parseInt(merch.get().getQuantityPerPieces()) >= quantity;
+        return merch.get().getQuantityPerPieces() >= quantity;
     }
 
     public void updateProductQuantity(Integer quantity, String id) {
@@ -108,26 +113,54 @@ public class MerchandiseService {
     }
 
     public void saveProductHistory(@NotNull Merchandise merchandise) {
+        Merchandise merch = merchandiseRepository.findById(merchandise.getId()).orElse(null);
+        if(merch == null) return;
         merchandiseHistoryRepository.save(new MerchandiseHistory(
             "",
-            merchandise.getId(),
-            merchandise.getName(),
-            merchandise.getPrice(),
-            merchandise.getCapital(),
+            merchandise.getId().equals(merch.getId()) ? merchandise.getId() : merch.getId(),
+            merchandise.getName().equals(merch.getName()) ? merchandise.getName() : merch.getName(),
+            merchandise.getPrice().compareTo(merch.getPrice()) == 0 ? merchandise.getPrice() : merch.getPrice(),
+            merchandise.getCapital().compareTo(merch.getCapital()) == 0 ? merchandise.getCapital() : merch.getCapital(),
             ""
         ));
     }
 
     public void archiveProduct(String id) {
-        merchandiseRepository.archiveProduct(id,"0");
+        merchandiseRepository.setProductIsActive(id,"0");
     }
 
     public void unarchiveProduct(String id) {
-        merchandiseRepository.archiveProduct(id,"1");
+        merchandiseRepository.setProductIsActive(id,"1");
     }
 
     public void addProductDiscount(Integer quantity, Double discount, String id) {
         if(merchandiseDiscountRepository.existsByIdAndQuantity(id,quantity)) merchandiseDiscountRepository.updateDiscount(discount,id,quantity);
         else merchandiseDiscountRepository.save(new MerchandiseDiscount("",id,discount,quantity,"1"));
+    }
+
+    public boolean checkIfDiscountQuantityExist(String id, Integer quantity) {
+        return merchandiseDiscountRepository.existsByIdAndQuantity(id,quantity);
+    }
+
+    public void archiveProductDiscount(String id, Integer quantity) {
+        String timestamp = new Timestamp(System.currentTimeMillis()).toString();
+        MerchandiseDiscount discount = merchandiseDiscountRepository.findByIdAndQuantity(id,quantity);
+        merchandiseDiscountHistoryRepository.save(new MerchandiseDiscountHistory(
+                "",
+                discount.getId(),
+                discount.getDiscount(),
+                discount.getQuantity(),
+                timestamp
+        ));
+        merchandiseDiscountRepository.archiveProductDiscount(id,quantity);
+    }
+
+    public List<Merchandise> findAllInactiveProduct() {
+        return merchandiseRepository.findAllByIsActiveOrderById("0");
+    }
+
+    public void unarchivedProduct(String id, boolean isZero) {
+        if(isZero) merchandiseRepository.setProductActiveWithZeroQuantity(id);
+        else merchandiseRepository.setProductIsActive(id,"1");
     }
 }

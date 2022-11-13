@@ -5,6 +5,8 @@ import com.capstone.backend.entity.TransactionReportHistory;
 import com.capstone.backend.entity.TransactionReportItem;
 import com.capstone.backend.entity.TransactionReportItemHistory;
 import com.capstone.backend.facade.TransactionFacade;
+import com.capstone.backend.pojo.ProductSummary;
+import com.capstone.backend.pojo.SalesSummary;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,7 +34,7 @@ public class TransactionController {
 
     @GetMapping("/get-all-valid-report")
     public List<TransactionReport> getAllValidReport() {
-        return facade.getAllValidReport();
+        return facade.findAllValidReport();
     }
 
     @GetMapping("/get-all-report")
@@ -47,12 +49,12 @@ public class TransactionController {
 
     @GetMapping("/search-valid-transaction")
     public List<TransactionReport> getAllValidReportBySearch(@RequestParam String search) {
-        return facade.getAllValidReportBySearch(search);
+        return facade.findAllValidReportBySearch(search);
     }
 
     @GetMapping("/search-archived-transaction")
     public List<TransactionReportHistory> getArchivedReportBySearch(@RequestParam String search) {
-        return facade.getArchivedReportBySearch(search);
+        return facade.findArchivedReportBySearch(search);
     }
 
     @GetMapping("/search-all-transaction")
@@ -62,52 +64,52 @@ public class TransactionController {
 
     @GetMapping("/search-start")
     public List<TransactionReport> getAllValidReportByStart(@RequestParam String start) {
-        return facade.getAllValidReportByStart(start);
+        return facade.findAllValidReportByStart(start);
     }
 
     @GetMapping("/search-archived-start")
     public List<TransactionReportHistory> getAllArchivedReportByStart(@RequestParam String start) {
-        return facade.getAllArchivedReportByStart(start);
+        return facade.findAllArchivedReportByStart(start);
     }
 
     @GetMapping("/search-all-start")
     public List<TransactionReportHistory> getAllReportByStart(@RequestParam String start) {
-        return facade.getAllReportByStart(start);
+        return facade.findAllReportByStart(start);
     }
 
     @GetMapping("/search-end")
     public List<TransactionReport> getAllValidReportByEnd(@RequestParam String end) {
-        return facade.getAllValidReportByEnd(end);
+        return facade.findAllValidReportByEnd(end);
     }
 
     @GetMapping("/search-archived-end")
     public List<TransactionReportHistory> getAllArchivedReportByEnd(@RequestParam String end) {
-        return facade.getAllArchivedReportByEnd(end);
+        return facade.findAllArchivedReportByEnd(end);
     }
 
     @GetMapping("/search-all-end")
     public List<TransactionReportHistory> getAllReportByEnd(@RequestParam String end) {
-        return facade.getAllReportByEnd(end);
+        return facade.findAllReportByEnd(end);
     }
 
     @GetMapping("/search-date")
     public List<TransactionReport> getAllValidReportByDate(@RequestParam String start, @RequestParam String end) {
-        return facade.getAllValidReportByDate(start,end);
+        return facade.findAllValidReportByDate(start,end);
     }
 
     @GetMapping("/search-archived-date")
     public List<TransactionReportHistory> getAllArchivedReportByDate(@RequestParam String start, @RequestParam String end) {
-        return facade.getAllArchivedReportByDate(start,end);
+        return facade.findAllArchivedReportByDate(start,end);
     }
 
     @GetMapping("/search-all-date")
     public List<TransactionReportHistory> getAllReportByDate(@RequestParam String start, @RequestParam String end) {
-        return facade.getAllReportByDate(start,end);
+        return facade.findAllReportByDate(start,end);
     }
 
     @GetMapping("/new-report-id")
     public String getNewReportId(@RequestParam String id) {
-        return facade.getNewReportId(id);
+        return facade.findNewReportId(id);
     }
 
     @GetMapping("/invalidate-report")
@@ -143,5 +145,45 @@ public class TransactionController {
     @PostMapping("/archive-all")
     public void archiveAll(@RequestParam String id) {
         facade.archiveAll(id);
+    }
+
+    @GetMapping("/calculate-sales-all")
+    public SalesSummary calculateAllSales() {
+        return facade.calculateAllSales();
+    }
+
+    @GetMapping("/calculate-sales-start")
+    public SalesSummary calculateSalesByStart(@RequestParam String start) {
+        return facade.calculateSalesByStart(start);
+    }
+
+    @GetMapping("/calculate-sales-end")
+    public SalesSummary calculateSalesByEnd(@RequestParam String end) {
+        return facade.calculateSalesByEnd(end);
+    }
+
+    @GetMapping("/calculate-sales-date")
+    public SalesSummary calculateSalesByDate(@RequestParam String start, @RequestParam String end) {
+        return facade.calculateSalesByDate(start,end);
+    }
+
+    @GetMapping("/calculate-product-sales-all")
+    public List<ProductSummary> calculateAllProductSales() {
+        return facade.calculateAllProductSales();
+    }
+
+    @GetMapping("/calculate-product-sales-date")
+    public List<ProductSummary> calculateAllProductSalesByDate(@RequestParam String start, @RequestParam String end) {
+        return facade.calculateAllProductSalesByDate(start,end);
+    }
+
+    @GetMapping("/calculate-product-sales-start")
+    public List<ProductSummary> calculateAllProductSalesByStart(@RequestParam String start) {
+        return facade.calculateAllProductSalesByStart(start);
+    }
+
+    @GetMapping("/calculate-product-sales-end")
+    public List<ProductSummary> calculateAllProductSalesByEnd(@RequestParam String end) {
+        return facade.calculateAllProductSalesByEnd(end);
     }
 }

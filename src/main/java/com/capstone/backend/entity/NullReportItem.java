@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 
 @Getter
 @AllArgsConstructor
@@ -23,15 +24,15 @@ public class NullReportItem {
     @Column(name = "name")
     private String name;
     @Column(name = "price")
-    private String price;
+    private BigDecimal price;
     @Column(name = "quantity")
     private Integer quantity;
     @Column(name = "discount")
-    private String discount;
+    private Double discount;
     @Column(name = "total_amount")
-    private String totalAmount;
+    private BigDecimal totalAmount;
     @Column(name = "capital")
-    private String capital;
+    private BigDecimal capital;
     @Column(name = "report_id")
     private String reportId;
     @Transient

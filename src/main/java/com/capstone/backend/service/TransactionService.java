@@ -4,6 +4,8 @@ import com.capstone.backend.entity.TransactionReport;
 import com.capstone.backend.entity.TransactionReportHistory;
 import com.capstone.backend.entity.TransactionReportItem;
 import com.capstone.backend.entity.TransactionReportItemHistory;
+import com.capstone.backend.pojo.ProductSummary;
+import com.capstone.backend.pojo.SalesSummary;
 import com.capstone.backend.repository.TransactionItemRepository;
 import com.capstone.backend.repository.TransactionReportHistoryRepository;
 import com.capstone.backend.repository.TransactionReportItemHistoryRepository;
@@ -12,7 +14,11 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class TransactionService {
@@ -42,23 +48,23 @@ public class TransactionService {
         return reportRepository.existsById(id);
     }
 
-    public List<TransactionReport> getAllValidReport() {
+    public List<TransactionReport> findAllValidReport() {
         return reportRepository.findByIsValidOrderByTimestampDesc("1");
     }
 
-    public List<TransactionReport> getAllValidReportBySearch(String search) {
+    public List<TransactionReport> findAllValidReportBySearch(String search) {
         return reportRepository.findAllByIdContainsAndIsValidOrderByTimestampDesc(search,"1");
     }
 
-    public List<TransactionReport> getAllValidReportByStart(String start) {
+    public List<TransactionReport> findAllValidReportByStart(String start) {
         return reportRepository.findAllByIsValidAndTimestampGreaterThanEqualOrderByTimestampDesc("1",start);
     }
 
-    public List<TransactionReport> getAllValidReportByEnd(String end) {
+    public List<TransactionReport> findAllValidReportByEnd(String end) {
         return reportRepository.findAllByIsValidAndTimestampLessThanEqualOrderByTimestampDesc("1",end);
     }
 
-    public List<TransactionReport> getAllValidReportByDate(String start, String end) {
+    public List<TransactionReport> findAllValidReportByDate(String start, String end) {
         return reportRepository.findAllByIsValidAndTimestampBetween("1",start,end);
     }
 
@@ -117,24 +123,20 @@ public class TransactionService {
         return reportHistoryRepository.findAllByOrderByTimestampDesc();
     }
 
-    public List<TransactionReportHistory> getArchivedReportBySearch(String search) {
+    public List<TransactionReportHistory> findArchivedReportBySearch(String search) {
         return reportHistoryRepository.findAllByIdContainsOrderByTimestampDesc(search);
     }
 
-    public List<TransactionReportHistory> getAllArchivedReportByDate(String start, String end) {
+    public List<TransactionReportHistory> findAllArchivedReportByDate(String start, String end) {
         return reportHistoryRepository.findAllByTimestampBetweenOrderByTimestampDesc(start,end);
     }
 
-    public List<TransactionReportHistory> getAllArchivedReportByEnd(String end) {
+    public List<TransactionReportHistory> findAllArchivedReportByEnd(String end) {
         return reportHistoryRepository.findAllByTimestampLessThanEqualOrderByTimestampDesc(end);
     }
 
-    public List<TransactionReportHistory> getAllArchivedReportByStart(String start) {
+    public List<TransactionReportHistory> findAllArchivedReportByStart(String start) {
         return reportHistoryRepository.findAllByTimestampGreaterThanEqualOrderByTimestampDesc(start);
-    }
-
-    public List<TransactionReport> getAllReport() {
-        return reportRepository.findAllByIsValidOrderByTimestampDesc("1");
     }
 
     public TransactionReport findReportById(String id) {
@@ -153,5 +155,79 @@ public class TransactionService {
 
     public boolean existByIdAndTimestamp(String id, String timestamp) {
         return reportItemHistoryRepository.existsByReportIdAndTimestamp(id,timestamp);
+    }
+
+
+    public SalesSummary calculateSales(@NotNull List<TransactionReport> reportList) {
+        SalesSummary summary = new SalesSummary(0,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO);
+        reportList.forEach(report -> itemRepository.findAllByUniqueId(report.getId())
+            .forEach(item -> {
+                BigDecimal totalCapital = item.getCapital().multiply(new BigDecimal(item.getSold()));
+                summary.setTotalItem(summary.getTotalItem() + item.getSold());
+                summary.setTotalAmount(summary.getTotalAmount().add(item.getTotalAmount()));
+                summary.setTotalCapital(summary.getTotalCapital().add(totalCapital));
+                summary.setTotal(summary.getTotal().add(item.getTotalAmount().subtract(totalCapital)));
+            }));
+        return summary;
+    }
+
+    /**
+     * [MAP : ID -> [MAP : PROPERTIES -> LIST TRANSACTION ITEM]]
+     * sort product by id and capital
+     */
+    public Map<String,Map<String,List<TransactionReportItem>>> sortProductToMap(@NotNull List<TransactionReport> reportList) {
+        Map<String,Map<String,List<TransactionReportItem>>> map = new HashMap<>();
+        reportList.forEach(report -> itemRepository.findAllByUniqueId(report.getId())
+            .forEach(item -> {
+                String id = item.getProductId();
+                String capital = item.getCapital().toString();
+                if(!map.containsKey(id)) {
+                    map.put(id, new HashMap<>());
+                    map.get(id).put(capital,new ArrayList<>());
+                    map.get(id).get(capital).add(item);
+                } else if(!map.get(id).containsKey(capital))  {
+                    map.get(id).put(capital,new ArrayList<>());
+                    map.get(id).get(capital).add(item);
+                } else map.get(id).get(capital).add(item);
+            }));
+        return map;
+    }
+
+    /**
+     * sort product by concatenating all properties to differentiate
+     * product with same id but have different value of other properties
+     * then converting to List<ProductSummary>
+     */
+    public List<ProductSummary> calculateProductSales(List<TransactionReport> reportList) {
+        Map<String,Map<String,List<TransactionReportItem>>> map = sortProductToMap(reportList);
+        Map<String,ProductSummary> productMap = new HashMap<>();
+        map.keySet()
+            .forEach(id -> map.get(id).keySet()
+                .forEach(capital -> map.get(id).get(capital)
+                    .forEach(item -> {
+                        String str = item.getProductId() + item.getCapital() + item.getPrice() + item.getName();
+                        BigDecimal totalCapital = item.getCapital().multiply(new BigDecimal(item.getSold()));
+                        BigDecimal profit = item.getTotalAmount().subtract(totalCapital);
+                        if(!productMap.containsKey(str)) {
+                            productMap.put(str,new ProductSummary(
+                                    item.getProductId(),
+                                    item.getName(),
+                                    item.getSold(),
+                                    item.getPrice(),
+                                    item.getDiscountPercentage(),
+                                    item.getCapital(),
+                                    item.getTotalAmount(),
+                                    totalCapital,
+                                    profit
+                            ));
+                        } else {
+                            ProductSummary summary = productMap.get(str);
+                            summary.setQuantity(summary.getQuantity() + item.getSold());
+                            summary.setTotalPrice(summary.getTotalPrice().add(item.getTotalAmount()));
+                            summary.setTotalCapital(summary.getTotalCapital().add(totalCapital));
+                            summary.setProfit(summary.getProfit().add(profit));
+                        }
+            })));
+        return new ArrayList<>(productMap.values());
     }
 }

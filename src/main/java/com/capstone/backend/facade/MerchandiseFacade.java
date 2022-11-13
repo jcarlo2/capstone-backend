@@ -2,6 +2,7 @@ package com.capstone.backend.facade;
 
 import com.capstone.backend.entity.Merchandise;
 import com.capstone.backend.entity.MerchandiseDiscount;
+import com.capstone.backend.entity.MerchandiseDiscountHistory;
 import com.capstone.backend.entity.MerchandiseHistory;
 import com.capstone.backend.service.MerchandiseService;
 import org.springframework.stereotype.Service;
@@ -42,8 +43,8 @@ public class MerchandiseFacade {
         return product.findAllValidDiscount(id);
     }
 
-    public List<MerchandiseDiscount> findAllInvalidDiscount(String id) {
-        return product.findAllInvalidDiscount(id);
+    public List<MerchandiseDiscountHistory> findAllArchivedDiscountById(String id) {
+        return product.findAllArchivedDiscountById(id);
     }
 
     public List<MerchandiseHistory> getAllProductHistory(String id) {
@@ -76,5 +77,21 @@ public class MerchandiseFacade {
 
     public void addProductDiscount(Integer quantity, Double discount, String id) {
         product.addProductDiscount(quantity,discount,id);
+    }
+
+    public boolean checkIfDiscountQuantityExist(String id, Integer quantity) {
+        return product.checkIfDiscountQuantityExist(id,quantity);
+    }
+
+    public void archiveProductDiscount(String id, Integer quantity) {
+        product.archiveProductDiscount(id,quantity);
+    }
+
+    public List<Merchandise> findAllInactiveProduct() {
+        return product.findAllInactiveProduct();
+    }
+
+    public void unarchivedProduct(String id, boolean isZero) {
+        product.unarchivedProduct(id,isZero);
     }
 }

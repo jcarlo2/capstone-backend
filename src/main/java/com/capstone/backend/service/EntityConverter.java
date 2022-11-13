@@ -66,17 +66,6 @@ public class EntityConverter {
                 report.getLink());
     }
 
-    public NullReportHistory convertDeliveryToNullHistory(@NotNull DeliveryReport report, String timestamp) {
-        return new NullReportHistory(
-                "",
-                report.getId(),
-                report.getUser(),
-                report.getTotal(),
-                report.getReason(),
-                timestamp,
-                report.getLink());
-    }
-
     public List<NullReportItemHistory> convertNullReportItem(@NotNull List<NullReportItem> itemList, String timestamp, String id) {
         List<NullReportItemHistory> newItemList = new ArrayList<>();
         for(NullReportItem item : itemList) {
@@ -94,6 +83,17 @@ public class EntityConverter {
             ));
         }
         return newItemList;
+    }
+
+    public NullReportHistory convertDeliveryToNullHistory(@NotNull DeliveryReport report, String timestamp) {
+        return new NullReportHistory(
+                "",
+                report.getId(),
+                report.getUser(),
+                report.getTotal(),
+                report.getReason(),
+                timestamp,
+                report.getLink());
     }
 
     public List<NullReportHistory> allDeliveryHistoryToNullHistory(@NotNull List<DeliveryReportHistory> reportList) {

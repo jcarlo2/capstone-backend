@@ -1,13 +1,14 @@
 package com.capstone.backend.service;
 
 import com.capstone.backend.entity.*;
+import com.capstone.backend.pojo.ProductSummary;
+import com.capstone.backend.pojo.SalesSummary;
 import com.capstone.backend.repository.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.util.*;
 
 @Service
 public class InventoryService {
@@ -268,15 +269,15 @@ public class InventoryService {
         return report;
     }
 
-    public List<NullReport> findAllValidNullReport(String isValid) {
+    public List<NullReport> findAllNullReport(String isValid) {
         return nullReportRepository.findAllByIsValidOrderByTimestampDesc(isValid);
     }
 
-    public List<DeliveryReport> findAllValidDeliveryReport(String isValid) {
+    public List<DeliveryReport> findAllDeliveryReport(String isValid) {
         return deliveryRepository.findAllByIsValidOrderByTimestampDesc(isValid);
     }
 
-    public List<DeliveryReport> getAllDeliveryReportByDate(String start, String end) {
+    public List<DeliveryReport> findAllDeliveryReportByDate(String start, String end) {
         return deliveryRepository.findAllByIsValidAndTimestampBetweenOrderByTimestampDesc("1",start,end);
     }
 
@@ -322,5 +323,142 @@ public class InventoryService {
 
     public List<DeliveryReportItemHistory> findAllDeliveryItemsHistory(String id, String timestamp) {
         return deliveryReportItemHistoryRepository.findAllByReportIdAndTimestamp(id,timestamp);
+    }
+
+    public SalesSummary calculateSales(@NotNull List<NullReport> reportList) {
+        int sold = 0;
+        BigDecimal price = BigDecimal.ZERO;
+        BigDecimal capital = BigDecimal.ZERO;
+        for(NullReport report : reportList) {
+            for(NullReportItem item : nullItemRepository.findAllByReportId(report.getId())) {
+                sold += item.getQuantity();
+                price = price.add(item.getTotalAmount());
+                capital = capital.add(item.getCapital().multiply(new BigDecimal(item.getQuantity())));
+            }
+        }
+        return new SalesSummary(sold,price,capital,price.subtract(capital));
+    }
+
+    /**
+     * sort product by concatenating all properties to differentiate
+     * product with same id but have different value of other properties
+     * then converting to List<ProductSummary>
+     */
+    public List<ProductSummary> calculateProductVoidSales(List<NullReport> reportList) {
+        Map<String,List<NullReportItem>> map = sortProductVoidToMap(reportList);
+        Map<String,ProductSummary> productMap = new HashMap<>();
+        map.keySet()
+            .forEach(key -> map.get(key)
+                .forEach(item ->{
+                    String str = item.getId() + item.getCapital() + item.getPrice() + item.getName();
+                    BigDecimal totalCapital = item.getCapital().multiply(new BigDecimal(item.getQuantity()));
+                    BigDecimal profit = item.getTotalAmount().subtract(totalCapital);
+                    if(!productMap.containsKey(str)) {
+                        productMap.put(str,new ProductSummary(
+                                item.getId(),
+                                item.getName(),
+                                item.getQuantity(),
+                                item.getPrice(),
+                                item.getDiscount(),
+                                item.getCapital(),
+                                item.getTotalAmount(),
+                                totalCapital,
+                                profit
+                        ));
+                    } else {
+                        ProductSummary summary = productMap.get(str);
+                        summary.setQuantity(summary.getQuantity() + item.getQuantity());
+                        summary.setTotalPrice(summary.getTotalPrice().add(item.getTotalAmount()));
+                        summary.setTotalCapital(summary.getTotalCapital().add(totalCapital));
+                        summary.setProfit(summary.getProfit().add(profit));
+                    }
+                }));
+        return new ArrayList<>(productMap.values());
+    }
+
+    /**
+     * sort product by concatenating all properties to differentiate
+     * product with same id but have different value of other properties
+     * then converting to List<ProductSummary>
+     */
+    public List<ProductSummary> calculateProductDeliverySales(List<DeliveryReport> reportList) {
+        Map<String,List<DeliveryReportItem>> map = sortProductDeliveryToMap(reportList);
+        Map<String,ProductSummary> productMap = new HashMap<>();
+        map.keySet()
+            .forEach(key -> map.get(key)
+                .forEach(item -> {
+                    String str = item.getProductId() + item.getCapital() + item.getTotalPrice() + item.getName();
+                    BigDecimal totalCapital = item.getCapital().multiply(new BigDecimal(item.getQuantity()));
+                    BigDecimal profit = item.getTotalAmount().subtract(totalCapital);
+                    if(!productMap.containsKey(str)) {
+                        productMap.put(str,new ProductSummary(
+                                item.getProductId(),
+                                item.getName(),
+                                item.getQuantity(),
+                                item.getTotalPrice(),
+                                item.getDiscountPercentage(),
+                                item.getCapital(),
+                                item.getTotalAmount(),
+                                totalCapital,
+                                profit
+                        ));
+                    } else {
+                        ProductSummary summary = productMap.get(str);
+                        summary.setQuantity(summary.getQuantity() + item.getQuantity());
+                        summary.setTotalPrice(summary.getTotalPrice().add(item.getTotalAmount()));
+                        summary.setTotalCapital(summary.getTotalCapital().add(totalCapital));
+                        summary.setProfit(summary.getProfit().add(profit));
+                    }
+                }));
+        return new ArrayList<>(productMap.values());
+    }
+
+    /**
+     * [MAP : ID -> [MAP : PROPERTIES -> LIST NULL ITEM]]
+     * sort product by id and capital
+     */
+    public Map<String,List<NullReportItem>> sortProductVoidToMap(@NotNull List<NullReport> reportList) {
+        Map<String,List<NullReportItem>> map = new HashMap<>();
+        reportList.forEach(report -> nullItemRepository.findAllByReportId(report.getId())
+            .forEach(item -> {
+                String id = item.getId();
+                if(!map.containsKey(id)) {
+                    map.put(id, new ArrayList<>());
+                    map.get(id).add(item);
+                } else map.get(id).add(item);
+            }));
+        return map;
+    }
+
+    /**
+     * [MAP : ID -> [MAP : PROPERTIES -> LIST DELIVERY ITEM]]
+     * sort product by id and capital
+     */
+    public Map<String,List<DeliveryReportItem>> sortProductDeliveryToMap(@NotNull List<DeliveryReport> reportList) {
+        Map<String,List<DeliveryReportItem>> map = new HashMap<>();
+        reportList.forEach(report -> {
+            if(report.getReason().equals("Default")) {
+                deliveryReportItemRepository.findAllByUniqueId(report.getId())
+                    .forEach(item -> {
+                        String id = item.getProductId();
+                        if(!map.containsKey(id)) {
+                            map.put(id, new ArrayList<>());
+                            map.get(id).add(item);
+                        } else map.get(id).add(item);
+                    });
+            }
+        });
+        return map;
+    }
+
+    public SalesSummary calculateAllDeliverySales(List<DeliveryReport> reportList) {
+        SalesSummary summary = new SalesSummary(0,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO);
+        reportList
+            .forEach(report -> findAllDeliveryItems(report.getId())
+                .forEach(item -> {
+                    summary.setTotalItem(summary.getTotalItem() + item.getQuantity());
+                    summary.setTotalAmount(summary.getTotalAmount().add(item.getTotalAmount()));
+                }));
+        return summary;
     }
 }

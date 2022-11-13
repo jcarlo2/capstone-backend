@@ -2,6 +2,7 @@ package com.capstone.backend.controller;
 
 import com.capstone.backend.entity.Merchandise;
 import com.capstone.backend.entity.MerchandiseDiscount;
+import com.capstone.backend.entity.MerchandiseDiscountHistory;
 import com.capstone.backend.entity.MerchandiseHistory;
 import com.capstone.backend.facade.MerchandiseFacade;
 import org.springframework.http.HttpStatus;
@@ -21,45 +22,42 @@ public class MerchandiseController {
     }
 
     @GetMapping("/all-merchandise")
-    public ResponseEntity<List<Merchandise>> findAllMerchandise(@RequestParam(name = "data") String filter) {
+    public ResponseEntity<List<Merchandise>> findAllMerchandise(@RequestParam String filter) {
         return new ResponseEntity<>(facade.getAllMerchandise(filter), HttpStatus.OK);
     }
 
     @GetMapping("/search-merchandise")
-    public ResponseEntity<List<Merchandise>> findMerchandiseBySearch(@RequestParam(name = "data") String search) {
+    public ResponseEntity<List<Merchandise>> findMerchandiseBySearch(@RequestParam String search) {
         return new ResponseEntity<>(facade.findMerchandiseBySearch(search), HttpStatus.OK);
     }
 
     @GetMapping( "/quantity-discount")
-    public ResponseEntity<MerchandiseDiscount> getDiscount(@RequestParam(name = "id") String id,
-                                                           @RequestParam(name = "quantity") BigDecimal quantity) {
+    public ResponseEntity<MerchandiseDiscount> getDiscount(@RequestParam String id, @RequestParam BigDecimal quantity) {
         return new ResponseEntity<>(facade.discount(id,quantity), HttpStatus.OK);
     }
 
     @GetMapping("/verify-stock")
-    public ResponseEntity<Boolean> hasStock(@RequestParam(name = "id") String id,
-                                            @RequestParam(name = "quantity") Integer quantity) {
+    public ResponseEntity<Boolean> hasStock(@RequestParam String id, @RequestParam Integer quantity) {
         return new ResponseEntity<>(facade.hasStock(id,quantity), HttpStatus.OK);
     }
 
     @PostMapping("/update-quantity")
-    public void updateProductQuantity(@RequestParam Integer quantity,
-                                      @RequestParam String id) {
+    public void updateProductQuantity(@RequestParam Integer quantity, @RequestParam String id) {
         facade.updateProductQuantity(quantity,id);
     }
 
     @GetMapping("/find-all-valid-discount")
-    public List<MerchandiseDiscount> findAllValidDiscount(@RequestParam(name = "data") String id) {
+    public List<MerchandiseDiscount> findAllValidDiscount(@RequestParam String id) {
         return facade.findAllValidDiscount(id);
     }
 
-    @GetMapping("/find-all-invalid-discount")
-    public List<MerchandiseDiscount> findAllInvalidDiscount(@RequestParam(name = "data") String id) {
-        return facade.findAllInvalidDiscount(id);
+    @GetMapping("/find-all-archived-discount-id")
+    public List<MerchandiseDiscountHistory> findAllArchivedDiscountById(@RequestParam String id) {
+        return facade.findAllArchivedDiscountById(id);
     }
 
     @GetMapping("/get-product-history")
-    public List<MerchandiseHistory> getAllProductHistory(@RequestParam(name = "data") String id) {
+    public List<MerchandiseHistory> getAllProductHistory(@RequestParam String id) {
         return facade.getAllProductHistory(id);
     }
 
@@ -69,7 +67,7 @@ public class MerchandiseController {
     }
 
     @GetMapping("/is-product-exist")
-    public boolean isProductExist(@RequestParam(name = "data") String id) {
+    public boolean isProductExist(@RequestParam String id) {
         return facade.isProductExist(id);
     }
 
@@ -84,17 +82,37 @@ public class MerchandiseController {
     }
 
     @GetMapping("/product-archive")
-    public void archiveProduct(@RequestParam(name = "data") String id) {
+    public void archiveProduct(@RequestParam String id) {
         facade.archiveProduct(id);
     }
 
     @GetMapping("/product-unarchive")
-    public void unarchiveProduct(@RequestParam(name = "data") String id) {
+    public void unarchiveProduct(@RequestParam String id) {
         facade.unarchiveProduct(id);
     }
 
-    @PostMapping("/product-discount")
+    @PostMapping("/add-product-discount")
     public void addProductDiscount(@RequestParam Integer quantity, @RequestParam Double discount, @RequestParam String id) {
         facade.addProductDiscount(quantity, discount,id);
+    }
+
+    @GetMapping("/check-discount-quantity-exist")
+    public boolean checkIfDiscountQuantityExist(@RequestParam String id, @RequestParam Integer quantity) {
+        return facade.checkIfDiscountQuantityExist(id,quantity);
+    }
+
+    @PostMapping("/archive-product-discount")
+    public void archiveProductDiscount(@RequestParam String id, @RequestParam Integer quantity) {
+        facade.archiveProductDiscount(id,quantity);
+    }
+
+    @GetMapping("/product-archive-list")
+    public List<Merchandise> findAllInactiveProduct() {
+            return facade.findAllInactiveProduct();
+    }
+
+    @PostMapping("unarchived-product")
+    public void unarchivedProduct(@RequestParam String id, @RequestParam boolean isZero) {
+        facade.unarchivedProduct(id,isZero);
     }
 }

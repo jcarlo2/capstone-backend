@@ -9,6 +9,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 
 
 @Getter
@@ -23,15 +24,15 @@ public class Merchandise {
     @Column(name = "name")
     private String name;
     @Column(name = "price")
-    private String price;
+    private BigDecimal price;
     @Column(name = "quantity_per_pieces")
-    private String quantityPerPieces;
+    private Integer quantityPerPieces;
     @Column(name = "pieces_per_box")
-    private String piecesPerBox;
+    private Integer piecesPerBox;
     @Column(name = "quantity_per_box",insertable = false)
-    private String quantityPerBox;
+    private Double quantityPerBox;
     @Column(name = "capital")
-    private String capital;
+    private BigDecimal capital;
     @Column(name = "is_active")
     private String isActive;
 
