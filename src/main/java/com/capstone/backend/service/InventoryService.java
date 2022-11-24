@@ -1,8 +1,7 @@
 package com.capstone.backend.service;
 
 import com.capstone.backend.entity.*;
-import com.capstone.backend.pojo.ProductSummary;
-import com.capstone.backend.pojo.SalesSummary;
+import com.capstone.backend.pojo.*;
 import com.capstone.backend.repository.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -54,27 +53,27 @@ public class InventoryService {
         return nullReportRepository.existsByLink(link);
     }
 
-    public boolean saveReportItem(@NotNull List<NullReportItem> itemList) {
-        String link = itemList.get(0).getLink();
-        String id = "";
-        if(nullReportRepository.existsByLink(link)) id = updateExistingNullItemList(link,itemList);
-        else {
-            for(NullReportItem item : itemList) {
-                if(item.getReason().equals("Exp/Dmg")) {
-                    nullItemRepository.save(item);
-                    id = item.getReportId();
-                }
-            }
-        }
-        return nullItemRepository.existsByReportId(id);
-    }
+//    public boolean saveReportItem(@NotNull List<NullReportItem> itemList) {
+//        String link = itemList.get(0).getLink();
+//        String id = "";
+//        if(nullReportRepository.existsByLink(link)) id = updateExistingNullItemList(link,itemList);
+//        else {
+//            for(NullReportItem item : itemList) {
+//                if(item.getReason().equals("Expired") || item.getReason().equals("Damaged")) {
+//                    nullItemRepository.save(item);
+//                    id = item.getReportId();
+//                }
+//            }
+//        }
+//        return nullItemRepository.existsByReportId(id);
+//    }
 
     public String updateExistingNullItemList(String link, List<NullReportItem> itemList) {
         String id = "";
         NullReport rep = nullReportRepository.findByLink(link);
         filterToDeleteNullItems(rep,itemList);
         for(NullReportItem item : itemList) {
-            if(item.getReason().equalsIgnoreCase("Exp/Dmg")) {
+            if(item.getReason().equals("Expired") || item.getReason().equals("Damaged")) {
                 nullItemRepository.updateByReportIdAndId(item.getQuantity(),item.getDiscount(),item.getTotalAmount(), rep.getId(),item.getId());
                 id = item.getReportId();
             }
@@ -325,139 +324,83 @@ public class InventoryService {
         return deliveryReportItemHistoryRepository.findAllByReportIdAndTimestamp(id,timestamp);
     }
 
-    public SalesSummary calculateSales(@NotNull List<NullReport> reportList) {
-        int sold = 0;
-        BigDecimal price = BigDecimal.ZERO;
-        BigDecimal capital = BigDecimal.ZERO;
-        for(NullReport report : reportList) {
-            for(NullReportItem item : nullItemRepository.findAllByReportId(report.getId())) {
-                sold += item.getQuantity();
-                price = price.add(item.getTotalAmount());
-                capital = capital.add(item.getCapital().multiply(new BigDecimal(item.getQuantity())));
-            }
-        }
-        return new SalesSummary(sold,price,capital,price.subtract(capital));
-    }
-
-    /**
-     * sort product by concatenating all properties to differentiate
-     * product with same id but have different value of other properties
-     * then converting to List<ProductSummary>
-     */
-    public List<ProductSummary> calculateProductVoidSales(List<NullReport> reportList) {
-        Map<String,List<NullReportItem>> map = sortProductVoidToMap(reportList);
-        Map<String,ProductSummary> productMap = new HashMap<>();
-        map.keySet()
-            .forEach(key -> map.get(key)
-                .forEach(item ->{
-                    String str = item.getId() + item.getCapital() + item.getPrice() + item.getName();
-                    BigDecimal totalCapital = item.getCapital().multiply(new BigDecimal(item.getQuantity()));
-                    BigDecimal profit = item.getTotalAmount().subtract(totalCapital);
-                    if(!productMap.containsKey(str)) {
-                        productMap.put(str,new ProductSummary(
-                                item.getId(),
-                                item.getName(),
-                                item.getQuantity(),
-                                item.getPrice(),
-                                item.getDiscount(),
-                                item.getCapital(),
-                                item.getTotalAmount(),
-                                totalCapital,
-                                profit
-                        ));
-                    } else {
-                        ProductSummary summary = productMap.get(str);
-                        summary.setQuantity(summary.getQuantity() + item.getQuantity());
-                        summary.setTotalPrice(summary.getTotalPrice().add(item.getTotalAmount()));
-                        summary.setTotalCapital(summary.getTotalCapital().add(totalCapital));
-                        summary.setProfit(summary.getProfit().add(profit));
-                    }
-                }));
-        return new ArrayList<>(productMap.values());
-    }
-
-    /**
-     * sort product by concatenating all properties to differentiate
-     * product with same id but have different value of other properties
-     * then converting to List<ProductSummary>
-     */
-    public List<ProductSummary> calculateProductDeliverySales(List<DeliveryReport> reportList) {
-        Map<String,List<DeliveryReportItem>> map = sortProductDeliveryToMap(reportList);
-        Map<String,ProductSummary> productMap = new HashMap<>();
-        map.keySet()
-            .forEach(key -> map.get(key)
+    public VoidSummary calculateSales(@NotNull List<NullReport> reportList) {
+        VoidSummary voidSummary = new VoidSummary(0,0,0,BigDecimal.ZERO);
+        reportList
+            .forEach(report -> nullItemRepository.findAllByReportId(report.getId())
                 .forEach(item -> {
-                    String str = item.getProductId() + item.getCapital() + item.getTotalPrice() + item.getName();
                     BigDecimal totalCapital = item.getCapital().multiply(new BigDecimal(item.getQuantity()));
-                    BigDecimal profit = item.getTotalAmount().subtract(totalCapital);
-                    if(!productMap.containsKey(str)) {
-                        productMap.put(str,new ProductSummary(
-                                item.getProductId(),
-                                item.getName(),
-                                item.getQuantity(),
-                                item.getTotalPrice(),
-                                item.getDiscountPercentage(),
-                                item.getCapital(),
-                                item.getTotalAmount(),
-                                totalCapital,
-                                profit
-                        ));
-                    } else {
-                        ProductSummary summary = productMap.get(str);
-                        summary.setQuantity(summary.getQuantity() + item.getQuantity());
-                        summary.setTotalPrice(summary.getTotalPrice().add(item.getTotalAmount()));
-                        summary.setTotalCapital(summary.getTotalCapital().add(totalCapital));
-                        summary.setProfit(summary.getProfit().add(profit));
-                    }
+                    voidSummary.setTotalItem(voidSummary.getTotalItem() + item.getQuantity());
+                    voidSummary.setTotalLoss(voidSummary.getTotalLoss().add(totalCapital));
+                    if(item.getReason().equals("Expired")) voidSummary.setExpiredItem(voidSummary.getExpiredItem() + item.getQuantity());
+                    else voidSummary.setDamagedItem(voidSummary.getDamagedItem() + item.getQuantity());
                 }));
-        return new ArrayList<>(productMap.values());
+        return voidSummary;
     }
 
     /**
-     * [MAP : ID -> [MAP : PROPERTIES -> LIST NULL ITEM]]
-     * sort product by id and capital
+     * sort product by concatenating all properties to differentiate
+     * product with same id but have different value of other properties
+     * then converting to List<ProductSummary>
      */
-    public Map<String,List<NullReportItem>> sortProductVoidToMap(@NotNull List<NullReport> reportList) {
-        Map<String,List<NullReportItem>> map = new HashMap<>();
+    public Map<String, VoidProductSummary> calculateProductVoidSales(@NotNull List<NullReport> reportList) {
+        Map<String,VoidProductSummary> productMap = new HashMap<>();
         reportList.forEach(report -> nullItemRepository.findAllByReportId(report.getId())
             .forEach(item -> {
-                String id = item.getId();
-                if(!map.containsKey(id)) {
-                    map.put(id, new ArrayList<>());
-                    map.get(id).add(item);
-                } else map.get(id).add(item);
+                String concat = item.getId() + item.getName() + item.getPrice() + item.getCapital() + item.getDiscount();
+                BigDecimal totalCapital = item.getCapital().multiply(new BigDecimal(item.getQuantity()));
+                if(productMap.containsKey(concat)) {
+                    VoidProductSummary summary =  productMap.get(concat);
+                    summary.setQuantity(summary.getQuantity() + item.getQuantity());
+                    summary.setTotalCapital(summary.getTotalCapital().add(totalCapital));
+                }else {
+                    productMap.put(concat,new VoidProductSummary(
+                        item.getId(),
+                        item.getName(),
+                        item.getReason(),
+                        item.getQuantity(),
+                        item.getCapital(),
+                        totalCapital
+                    ));
+                }
             }));
-        return map;
+        return productMap;
     }
 
     /**
-     * [MAP : ID -> [MAP : PROPERTIES -> LIST DELIVERY ITEM]]
-     * sort product by id and capital
+     * sort product by concatenating all properties to differentiate
+     * product with same id but have different value of other properties
+     * then converting to List<DeliveryProductSummary>
      */
-    public Map<String,List<DeliveryReportItem>> sortProductDeliveryToMap(@NotNull List<DeliveryReport> reportList) {
-        Map<String,List<DeliveryReportItem>> map = new HashMap<>();
-        reportList.forEach(report -> {
-            if(report.getReason().equals("Default")) {
-                deliveryReportItemRepository.findAllByUniqueId(report.getId())
-                    .forEach(item -> {
-                        String id = item.getProductId();
-                        if(!map.containsKey(id)) {
-                            map.put(id, new ArrayList<>());
-                            map.get(id).add(item);
-                        } else map.get(id).add(item);
-                    });
-            }
-        });
-        return map;
+    public Map<String, DeliveryProductSummary> calculateProductDeliverySales(@NotNull List<DeliveryReport> reportList) {
+        Map<String,DeliveryProductSummary> productMap = new HashMap<>();
+        reportList.forEach(report -> deliveryReportItemRepository.findAllByUniqueId(report.getId())
+            .forEach(item -> {
+                String concat = item.getProductId() + item.getName() + item.getDiscountPercentage() + item.getCapital();
+                if(productMap.containsKey(concat)) {
+                    DeliveryProductSummary summary =  productMap.get(concat);
+                    summary.setQuantity(summary.getQuantity() + item.getQuantity());
+                    summary.setTotalCost(summary.getTotalCost().add(item.getTotalAmount()));
+                }else {
+                    productMap.put(concat,new DeliveryProductSummary(
+                            item.getProductId(),
+                            item.getName(),
+                            item.getQuantity(),
+                            item.getDiscountPercentage(),
+                            item.getTotalAmount()
+                    ));
+                }
+            }));
+        return productMap;
     }
 
-    public SalesSummary calculateAllDeliverySales(List<DeliveryReport> reportList) {
-        SalesSummary summary = new SalesSummary(0,BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO);
+    public DeliverySummary calculateAllDeliverySales(@NotNull List<DeliveryReport> reportList) {
+        DeliverySummary summary = new DeliverySummary(0,BigDecimal.ZERO);
         reportList
             .forEach(report -> findAllDeliveryItems(report.getId())
                 .forEach(item -> {
                     summary.setTotalItem(summary.getTotalItem() + item.getQuantity());
-                    summary.setTotalAmount(summary.getTotalAmount().add(item.getTotalAmount()));
+                    summary.setTotalCost(summary.getTotalCost().add(item.getTotalAmount()));
                 }));
         return summary;
     }

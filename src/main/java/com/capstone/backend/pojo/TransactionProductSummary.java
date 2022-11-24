@@ -1,16 +1,13 @@
 package com.capstone.backend.pojo;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter @Setter
-public class ProductSummary {
+@Getter @Setter @ToString
+public class TransactionProductSummary {
     private String id;
     private String name;
     private Integer quantity;

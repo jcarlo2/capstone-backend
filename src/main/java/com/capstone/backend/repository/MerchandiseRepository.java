@@ -18,8 +18,7 @@ public interface MerchandiseRepository extends CrudRepository<Merchandise, Strin
     List<Merchandise> findAllByIsActiveOrderByQuantityPerPieces(String isActive);
     List<Merchandise> findAllByIsActiveOrderByPrice(String isActive);
     List<Merchandise> findAllByIsActiveOrderByPriceDesc(String isActive);
-
-    List<Merchandise> findAllByPriceLessThanEqualAndIsActiveOrderByPriceDesc(String search,String isActive);
+    List<Merchandise> findAllByPriceLessThanEqualAndIsActiveOrderByPriceDesc(BigDecimal search,String isActive);
 
     @Modifying @Transactional
     @Query(value = "UPDATE product SET quantity_per_pieces = product.quantity_per_pieces + ?1 WHERE product.id = ?2",nativeQuery = true)
@@ -28,8 +27,6 @@ public interface MerchandiseRepository extends CrudRepository<Merchandise, Strin
     @Modifying @Transactional
     @Query(value = "UPDATE product SET name = ?2, price = ?3, capital = ?4 WHERE product.id = ?1",nativeQuery = true)
     void updateProduct(String id, String name, BigDecimal price, BigDecimal capital);
-
-
 
     @Transactional @Modifying
     @Query(value = "UPDATE product SET is_active = ?2 WHERE id = ?1",nativeQuery = true)

@@ -9,10 +9,9 @@ import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter @Setter
-public class SalesSummary {
+@Getter
+@Setter
+public class DeliverySummary {
     private Integer totalItem;
-    private BigDecimal totalAmount;
-    private BigDecimal totalCapital;
-    private BigDecimal totalProfit;
+    private BigDecimal totalCost;
 }

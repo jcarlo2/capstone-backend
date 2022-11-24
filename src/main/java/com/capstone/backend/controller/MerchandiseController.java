@@ -22,18 +22,18 @@ public class MerchandiseController {
     }
 
     @GetMapping("/all-merchandise")
-    public ResponseEntity<List<Merchandise>> findAllMerchandise(@RequestParam String filter) {
-        return new ResponseEntity<>(facade.getAllMerchandise(filter), HttpStatus.OK);
+    public List<Merchandise> findAllMerchandise(@RequestParam String filter) {
+        return facade.getAllMerchandise(filter);
     }
 
     @GetMapping("/search-merchandise")
-    public ResponseEntity<List<Merchandise>> findMerchandiseBySearch(@RequestParam String search) {
-        return new ResponseEntity<>(facade.findMerchandiseBySearch(search), HttpStatus.OK);
+    public List<Merchandise> findMerchandiseBySearch(@RequestParam String search, @RequestParam String filter) {
+        return facade.findMerchandiseBySearch(search,filter);
     }
 
     @GetMapping( "/quantity-discount")
-    public ResponseEntity<MerchandiseDiscount> getDiscount(@RequestParam String id, @RequestParam BigDecimal quantity) {
-        return new ResponseEntity<>(facade.discount(id,quantity), HttpStatus.OK);
+    public MerchandiseDiscount getDiscount(@RequestParam String id, @RequestParam BigDecimal quantity) {
+        return facade.discount(id,quantity);
     }
 
     @GetMapping("/verify-stock")
@@ -106,13 +106,18 @@ public class MerchandiseController {
         facade.archiveProductDiscount(id,quantity);
     }
 
+    @PostMapping("/update-product-discount")
+    public boolean updateProductDiscount(@RequestParam String id, @RequestParam Integer quantity, @RequestParam Double discount, @RequestParam Integer quantityUpdate, @RequestParam Double discountUpdate) {
+        return facade.updateProductDiscount(id,quantity,discount,quantityUpdate,discountUpdate);
+    }
+
     @GetMapping("/product-archive-list")
     public List<Merchandise> findAllInactiveProduct() {
             return facade.findAllInactiveProduct();
     }
 
-    @PostMapping("unarchived-product")
-    public void unarchivedProduct(@RequestParam String id, @RequestParam boolean isZero) {
-        facade.unarchivedProduct(id,isZero);
+    @PostMapping("activate-product")
+    public void activateProduct(@RequestParam String id, @RequestParam boolean isZero) {
+        facade.activateProduct(id,isZero);
     }
 }

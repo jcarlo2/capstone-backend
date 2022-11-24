@@ -1,12 +1,9 @@
 package com.capstone.backend.facade;
 
 import com.capstone.backend.entity.*;
-import com.capstone.backend.pojo.ProductSummary;
+import com.capstone.backend.pojo.TransactionProductSummary;
 import com.capstone.backend.pojo.SalesSummary;
-import com.capstone.backend.service.EntityConverter;
-import com.capstone.backend.service.InventoryService;
-import com.capstone.backend.service.MerchandiseService;
-import com.capstone.backend.service.TransactionService;
+import com.capstone.backend.service.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +11,7 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class TransactionFacade {
@@ -22,12 +20,14 @@ public class TransactionFacade {
     private final MerchandiseService merchandise;
     private final InventoryService inventory;
     private final EntityConverter converter;
+    private final Sorter sorter;
 
-    public TransactionFacade(TransactionService service, MerchandiseService merchandise, InventoryService inventory, EntityConverter converter) {
+    public TransactionFacade(TransactionService service, MerchandiseService merchandise, InventoryService inventory, EntityConverter converter, Sorter sorter) {
         this.service = service;
         this.merchandise = merchandise;
         this.inventory = inventory;
         this.converter = converter;
+        this.sorter = sorter;
     }
 
     public String generateId() {
@@ -86,10 +86,6 @@ public class TransactionFacade {
         List<TransactionReportItemHistory> itemList = converter.convertTransactionReportItem(service.findAllItemById(id),timestamp);
         service.archiveReport(report,itemList);
         service.invalidateReport(id);
-    }
-
-    public Boolean saveReturnReportItem(List<TransactionReportItem> itemList) {
-        return service.saveReportItem(itemList);
     }
 
     public void archiveAll(@NotNull String id) {
@@ -250,19 +246,23 @@ public class TransactionFacade {
         return service.calculateSales(service.findAllValidReportByDate(start,end));
     }
 
-    public List<ProductSummary> calculateAllProductSales() {
-        return service.calculateProductSales(service.findAllValidReport());
+    public List<List<TransactionProductSummary>> calculateAllProductSales() {
+        Map<String, TransactionProductSummary> summaryList = service.calculateProductSales(service.findAllValidReport());
+        return sorter.transactionInitializeAndSortList(summaryList);
     }
 
-    public List<ProductSummary> calculateAllProductSalesByDate(String start, String end) {
-        return service.calculateProductSales(service.findAllValidReportByDate(start,end));
+    public List<List<TransactionProductSummary>> calculateAllProductSalesByDate(String start, String end) {
+        Map<String, TransactionProductSummary> summaryList = service.calculateProductSales(service.findAllValidReportByDate(start,end));
+        return sorter.transactionInitializeAndSortList(summaryList);
     }
 
-    public List<ProductSummary> calculateAllProductSalesByStart(String start) {
-        return service.calculateProductSales(service.findAllValidReportByStart(start));
+    public List<List<TransactionProductSummary>> calculateAllProductSalesByStart(String start) {
+        Map<String, TransactionProductSummary> summaryList = service.calculateProductSales(service.findAllValidReportByStart(start));
+        return sorter.transactionInitializeAndSortList(summaryList);
     }
 
-    public List<ProductSummary> calculateAllProductSalesByEnd(String end) {
-        return service.calculateProductSales(service.findAllValidReportByEnd(end));
+    public List<List<TransactionProductSummary>> calculateAllProductSalesByEnd(String end) {
+        Map<String, TransactionProductSummary> summaryList = service.calculateProductSales(service.findAllValidReportByEnd(end));
+        return sorter.transactionInitializeAndSortList(summaryList);
     }
 }

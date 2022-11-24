@@ -30,7 +30,7 @@ public interface TransactionReportRepository extends CrudRepository<TransactionR
 
     List<TransactionReport> findAllByIdContainsAndIsValidOrderByTimestampDesc(String search, String isValid);
 
-    List<TransactionReport> findAllByIsValidAndTimestampBetween(String isValid, String start, String end);
+    List<TransactionReport> findAllByIsValidAndTimestampGreaterThanEqualAndTimestampLessThanEqualOrderByTimestampDesc(String isValid, String start, String end);
 
     List<TransactionReport> findAllByIsValidOrderByTimestampDesc(String isValid);
 

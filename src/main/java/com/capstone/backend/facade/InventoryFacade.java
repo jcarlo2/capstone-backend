@@ -1,18 +1,15 @@
 package com.capstone.backend.facade;
 
 import com.capstone.backend.entity.*;
-import com.capstone.backend.pojo.ProductSummary;
-import com.capstone.backend.pojo.SalesSummary;
-import com.capstone.backend.service.EntityConverter;
-import com.capstone.backend.service.InventoryService;
-import com.capstone.backend.service.MerchandiseService;
-import com.capstone.backend.service.TransactionService;
+import com.capstone.backend.pojo.*;
+import com.capstone.backend.service.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class InventoryFacade {
@@ -20,24 +17,26 @@ public class InventoryFacade {
     private final TransactionService transaction;
     private final MerchandiseService merchandise;
     private final EntityConverter converter;
+    private final Sorter sorter;
 
-    public InventoryFacade(InventoryService service, TransactionService transaction, MerchandiseService merchandise, EntityConverter converter) {
+    public InventoryFacade(InventoryService service, TransactionService transaction, MerchandiseService merchandise, EntityConverter converter, Sorter sorter) {
         this.service = service;
         this.transaction = transaction;
         this.merchandise = merchandise;
         this.converter = converter;
+        this.sorter = sorter;
     }
 
     public Boolean saveNullReport(NullReport report) {
         return service.saveReport(report);
     }
 
-    public Boolean saveReturnReportItem(@NotNull List<NullReportItem> itemList) {
-        itemList.forEach(item -> {
-            if(item.getReason().equals("Change"))  merchandise.updateProductQuantity(item.getQuantity(),item.getId());
-        });
-        return service.saveReportItem(itemList);
-    }
+//    public Boolean saveReturnReportItem(@NotNull List<NullReportItem> itemList) {
+//        itemList.forEach(item -> {
+//            if(item.getReason().equals("Change"))  merchandise.updateProductQuantity(item.getQuantity(),item.getId());
+//        });
+//        return service.saveReportItem(itemList);
+//    }
 
     public String generateNullId() {
         return service.generateNullId();
@@ -265,67 +264,75 @@ public class InventoryFacade {
         return report;
     }
 
-    public SalesSummary calculateAllVoidSales() {
+    public VoidSummary calculateAllVoidSales() {
         return service.calculateSales(service.findAllNullReport("1"));
     }
 
-    public SalesSummary calculateAllVoidSalesByStart(String start) {
+    public VoidSummary calculateAllVoidSalesByStart(String start) {
         return service.calculateSales(service.findAllNullReportByStart(start));
     }
 
-    public SalesSummary calculateAllVoidSalesByEnd(String end) {
+    public VoidSummary calculateAllVoidSalesByEnd(String end) {
         return service.calculateSales(service.findAllNullReportByEnd(end));
     }
 
-    public SalesSummary calculateAllVoidSalesByDate(String start, String end) {
+    public VoidSummary calculateAllVoidSalesByDate(String start, String end) {
         return service.calculateSales(service.findAllNullReportByDate(start,end));
     }
 
-    public List<ProductSummary> calculateProductVoidAll() {
-        return service.calculateProductVoidSales(service.findAllNullReport("1"));
+    public List<List<VoidProductSummary>> calculateProductVoidAll() {
+        Map<String,VoidProductSummary> summaryList = service.calculateProductVoidSales(service.findAllNullReport("1"));
+        return sorter.voidInitializeAndSortList(summaryList);
     }
 
-    public List<ProductSummary> calculateProductVoidByDate(String start, String end) {
-        return service.calculateProductVoidSales(service.findAllNullReportByDate(start,end));
+    public List<List<VoidProductSummary>> calculateProductVoidByDate(String start, String end) {
+        Map<String,VoidProductSummary> summaryList = service.calculateProductVoidSales(service.findAllNullReportByDate(start,end));
+        return sorter.voidInitializeAndSortList(summaryList);
     }
 
-    public List<ProductSummary> calculateProductVoidByStart(String start) {
-        return service.calculateProductVoidSales(service.findAllNullReportByStart(start));
+    public List<List<VoidProductSummary>> calculateProductVoidByStart(String start) {
+        Map<String,VoidProductSummary> summaryList = service.calculateProductVoidSales(service.findAllNullReportByStart(start));
+        return sorter.voidInitializeAndSortList(summaryList);
     }
 
-    public List<ProductSummary> calculateProductVoidByEnd(String end) {
-        return service.calculateProductVoidSales(service.findAllNullReportByEnd(end));
+    public List<List<VoidProductSummary>> calculateProductVoidByEnd(String end) {
+        Map<String,VoidProductSummary> summaryList = service.calculateProductVoidSales(service.findAllNullReportByEnd(end));
+        return sorter.voidInitializeAndSortList(summaryList);
     }
 
-    public List<ProductSummary> calculateProductDeliveryAll() {
-        return service.calculateProductDeliverySales(service.findAllDeliveryReport("1"));
+    public List<List<DeliveryProductSummary>> calculateProductDeliveryAll() {
+        Map<String, DeliveryProductSummary> summaryList = service.calculateProductDeliverySales(service.findAllDeliveryReport("1"));
+        return sorter.deliveryInitializeAndSortList(summaryList);
     }
 
-    public List<ProductSummary> calculateProductDeliveryByDate(String start, String end) {
-        return service.calculateProductDeliverySales(service.findAllDeliveryReportByDate(start,end));
+    public List<List<DeliveryProductSummary>> calculateProductDeliveryByDate(String start, String end) {
+        Map<String, DeliveryProductSummary> summaryList = service.calculateProductDeliverySales(service.findAllDeliveryReportByDate(start,end));
+        return sorter.deliveryInitializeAndSortList(summaryList);
     }
 
-    public List<ProductSummary> calculateProductDeliveryByStart(String start) {
-        return service.calculateProductDeliverySales(service.findAllDeliveryReportByEnd(start));
+    public List<List<DeliveryProductSummary>> calculateProductDeliveryByStart(String start) {
+        Map<String, DeliveryProductSummary> summaryList = service.calculateProductDeliverySales(service.findAllDeliveryReportByStart(start));
+        return sorter.deliveryInitializeAndSortList(summaryList);
     }
 
-    public List<ProductSummary> calculateProductDeliveryByEnd(String end) {
-        return service.calculateProductDeliverySales(service.findAllDeliveryReportByStart(end));
+    public List<List<DeliveryProductSummary>> calculateProductDeliveryByEnd(String end) {
+        Map<String, DeliveryProductSummary> summaryList = service.calculateProductDeliverySales(service.findAllDeliveryReportByEnd(end));
+        return sorter.deliveryInitializeAndSortList(summaryList);
     }
 
-    public SalesSummary calculateAllDeliverySales() {
+    public DeliverySummary calculateAllDeliverySales() {
         return service.calculateAllDeliverySales(service.findAllDeliveryReport("1"));
     }
 
-    public SalesSummary calculateAllDeliverySalesByDate(String start, String end) {
+    public DeliverySummary calculateAllDeliverySalesByDate(String start, String end) {
         return service.calculateAllDeliverySales(service.findAllDeliveryReportByDate(start,end));
     }
 
-    public SalesSummary calculateAllDeliverySalesByStart(String start) {
+    public DeliverySummary calculateAllDeliverySalesByStart(String start) {
         return service.calculateAllDeliverySales(service.findAllDeliveryReportByStart(start));
     }
 
-    public SalesSummary calculateAllDeliverySalesByEnd(String end) {
+    public DeliverySummary calculateAllDeliverySalesByEnd(String end) {
         return service.calculateAllDeliverySales(service.findAllDeliveryReportByEnd(end));
     }
 }

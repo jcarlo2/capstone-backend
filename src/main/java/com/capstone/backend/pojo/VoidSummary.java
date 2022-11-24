@@ -9,10 +9,12 @@ import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter @Setter
-public class SalesSummary {
+@Getter
+@Setter
+public class VoidSummary {
     private Integer totalItem;
-    private BigDecimal totalAmount;
-    private BigDecimal totalCapital;
-    private BigDecimal totalProfit;
+    private Integer expiredItem;
+    private Integer damagedItem;
+    private BigDecimal totalLoss;
 }
+

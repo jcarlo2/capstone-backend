@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 @Table(name = "null_item", schema = "retail_management")
 @Entity(name = "null_item")
 public class NullReportItem {
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "no")
     private String num;
@@ -35,7 +34,7 @@ public class NullReportItem {
     private BigDecimal capital;
     @Column(name = "report_id")
     private String reportId;
-    @Transient
+    @Column(name = "reason")
     private String reason;
     @Transient
     private String link;

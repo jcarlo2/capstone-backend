@@ -79,7 +79,8 @@ public class EntityConverter {
                     item.getTotalAmount(),
                     item.getCapital(),
                     id,
-                    timestamp
+                    timestamp,
+                    item.getReason()
             ));
         }
         return newItemList;

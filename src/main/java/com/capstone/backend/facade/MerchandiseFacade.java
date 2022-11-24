@@ -31,8 +31,8 @@ public class MerchandiseFacade {
         return product.getAllMerchandise(filter);
     }
 
-    public List<Merchandise> findMerchandiseBySearch(String search) {
-        return product.findMerchandiseBySearch(search);
+    public List<Merchandise> findMerchandiseBySearch(String search, String filter) {
+        return product.findMerchandiseBySearch(search,filter);
     }
 
     public void updateProductQuantity(Integer quantity, String id) {
@@ -91,7 +91,11 @@ public class MerchandiseFacade {
         return product.findAllInactiveProduct();
     }
 
-    public void unarchivedProduct(String id, boolean isZero) {
-        product.unarchivedProduct(id,isZero);
+    public void activateProduct(String id, boolean isZero) {
+        product.activateProduct(id,isZero);
+    }
+
+    public boolean updateProductDiscount(String id, Integer quantity, Double discount, Integer quantityUpdate, Double discountUpdate) {
+        return product.updateProductDiscount(id,quantity,discount,quantityUpdate,discountUpdate);
     }
 }

@@ -5,7 +5,7 @@ import com.capstone.backend.entity.TransactionReportHistory;
 import com.capstone.backend.entity.TransactionReportItem;
 import com.capstone.backend.entity.TransactionReportItemHistory;
 import com.capstone.backend.facade.TransactionFacade;
-import com.capstone.backend.pojo.ProductSummary;
+import com.capstone.backend.pojo.TransactionProductSummary;
 import com.capstone.backend.pojo.SalesSummary;
 import org.springframework.web.bind.annotation.*;
 
@@ -127,11 +127,6 @@ public class TransactionController {
         return facade.saveReportItem(itemList);
     }
 
-    @PostMapping("/save-return-report-item")
-    public Boolean saveReturnReportItem(@RequestBody List<TransactionReportItem> itemList) {
-        return facade.saveReturnReportItem(itemList);
-    }
-
     @PostMapping("/save-report")
     public Boolean saveReport(@RequestBody TransactionReport report) {
         return facade.saveReport(report);
@@ -168,22 +163,22 @@ public class TransactionController {
     }
 
     @GetMapping("/calculate-product-sales-all")
-    public List<ProductSummary> calculateAllProductSales() {
+    public List<List<TransactionProductSummary>> calculateAllProductSales() {
         return facade.calculateAllProductSales();
     }
 
     @GetMapping("/calculate-product-sales-date")
-    public List<ProductSummary> calculateAllProductSalesByDate(@RequestParam String start, @RequestParam String end) {
+    public List<List<TransactionProductSummary>> calculateAllProductSalesByDate(@RequestParam String start, @RequestParam String end) {
         return facade.calculateAllProductSalesByDate(start,end);
     }
 
     @GetMapping("/calculate-product-sales-start")
-    public List<ProductSummary> calculateAllProductSalesByStart(@RequestParam String start) {
+    public List<List<TransactionProductSummary>> calculateAllProductSalesByStart(@RequestParam String start) {
         return facade.calculateAllProductSalesByStart(start);
     }
 
     @GetMapping("/calculate-product-sales-end")
-    public List<ProductSummary> calculateAllProductSalesByEnd(@RequestParam String end) {
+    public List<List<TransactionProductSummary>> calculateAllProductSalesByEnd(@RequestParam String end) {
         return facade.calculateAllProductSalesByEnd(end);
     }
 }

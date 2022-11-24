@@ -4,7 +4,7 @@ import com.capstone.backend.entity.TransactionReport;
 import com.capstone.backend.entity.TransactionReportHistory;
 import com.capstone.backend.entity.TransactionReportItem;
 import com.capstone.backend.entity.TransactionReportItemHistory;
-import com.capstone.backend.pojo.ProductSummary;
+import com.capstone.backend.pojo.TransactionProductSummary;
 import com.capstone.backend.pojo.SalesSummary;
 import com.capstone.backend.repository.TransactionItemRepository;
 import com.capstone.backend.repository.TransactionReportHistoryRepository;
@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +64,7 @@ public class TransactionService {
     }
 
     public List<TransactionReport> findAllValidReportByDate(String start, String end) {
-        return reportRepository.findAllByIsValidAndTimestampBetween("1",start,end);
+        return reportRepository.findAllByIsValidAndTimestampGreaterThanEqualAndTimestampLessThanEqualOrderByTimestampDesc("1",start,end);
     }
 
     public String getNewReportId(@NotNull String id) {
@@ -84,7 +83,9 @@ public class TransactionService {
     public Boolean saveReportItem(@NotNull List<TransactionReportItem> itemList) {
         if(itemList.get(0).getUniqueId() == null) return false;
         itemRepository.deleteAllByUniqueId(itemList.get(0).getUniqueId());
-        itemRepository.saveAll(itemList);
+        itemList.forEach(item -> {
+            if(item.getSold() > 0) itemRepository.save(item);
+        });
         return itemRepository.existsByUniqueId(itemList.get(0).getUniqueId());
     }
 
@@ -166,31 +167,9 @@ public class TransactionService {
                 summary.setTotalItem(summary.getTotalItem() + item.getSold());
                 summary.setTotalAmount(summary.getTotalAmount().add(item.getTotalAmount()));
                 summary.setTotalCapital(summary.getTotalCapital().add(totalCapital));
-                summary.setTotal(summary.getTotal().add(item.getTotalAmount().subtract(totalCapital)));
+                summary.setTotalProfit(summary.getTotalProfit().add(item.getTotalAmount().subtract(totalCapital)));
             }));
         return summary;
-    }
-
-    /**
-     * [MAP : ID -> [MAP : PROPERTIES -> LIST TRANSACTION ITEM]]
-     * sort product by id and capital
-     */
-    public Map<String,Map<String,List<TransactionReportItem>>> sortProductToMap(@NotNull List<TransactionReport> reportList) {
-        Map<String,Map<String,List<TransactionReportItem>>> map = new HashMap<>();
-        reportList.forEach(report -> itemRepository.findAllByUniqueId(report.getId())
-            .forEach(item -> {
-                String id = item.getProductId();
-                String capital = item.getCapital().toString();
-                if(!map.containsKey(id)) {
-                    map.put(id, new HashMap<>());
-                    map.get(id).put(capital,new ArrayList<>());
-                    map.get(id).get(capital).add(item);
-                } else if(!map.get(id).containsKey(capital))  {
-                    map.get(id).put(capital,new ArrayList<>());
-                    map.get(id).get(capital).add(item);
-                } else map.get(id).get(capital).add(item);
-            }));
-        return map;
     }
 
     /**
@@ -198,36 +177,34 @@ public class TransactionService {
      * product with same id but have different value of other properties
      * then converting to List<ProductSummary>
      */
-    public List<ProductSummary> calculateProductSales(List<TransactionReport> reportList) {
-        Map<String,Map<String,List<TransactionReportItem>>> map = sortProductToMap(reportList);
-        Map<String,ProductSummary> productMap = new HashMap<>();
-        map.keySet()
-            .forEach(id -> map.get(id).keySet()
-                .forEach(capital -> map.get(id).get(capital)
-                    .forEach(item -> {
-                        String str = item.getProductId() + item.getCapital() + item.getPrice() + item.getName();
-                        BigDecimal totalCapital = item.getCapital().multiply(new BigDecimal(item.getSold()));
-                        BigDecimal profit = item.getTotalAmount().subtract(totalCapital);
-                        if(!productMap.containsKey(str)) {
-                            productMap.put(str,new ProductSummary(
-                                    item.getProductId(),
-                                    item.getName(),
-                                    item.getSold(),
-                                    item.getPrice(),
-                                    item.getDiscountPercentage(),
-                                    item.getCapital(),
-                                    item.getTotalAmount(),
-                                    totalCapital,
-                                    profit
-                            ));
-                        } else {
-                            ProductSummary summary = productMap.get(str);
-                            summary.setQuantity(summary.getQuantity() + item.getSold());
-                            summary.setTotalPrice(summary.getTotalPrice().add(item.getTotalAmount()));
-                            summary.setTotalCapital(summary.getTotalCapital().add(totalCapital));
-                            summary.setProfit(summary.getProfit().add(profit));
-                        }
-            })));
-        return new ArrayList<>(productMap.values());
+    public  Map<String, TransactionProductSummary> calculateProductSales(@NotNull List<TransactionReport> reportList) {
+        Map<String, TransactionProductSummary> productMap = new HashMap<>();
+        reportList.forEach(report -> itemRepository.findAllByUniqueId(report.getId())
+            .forEach(item -> {
+                String concat = item.getProductId() + item.getName() + item.getPrice() + item.getCapital() + item.getDiscountPercentage();
+                BigDecimal totalCapital = item.getCapital().multiply(new BigDecimal(item.getSold()));
+                BigDecimal totalProfit = item.getTotalAmount().subtract(totalCapital);
+                if(productMap.containsKey(concat)) {
+                    TransactionProductSummary summary =  productMap.get(concat);
+                    summary.setQuantity(summary.getQuantity() + item.getSold());
+                    summary.setTotalPrice(summary.getTotalPrice().add(item.getTotalAmount()));
+                    summary.setTotalCapital(summary.getTotalCapital().add(totalCapital));
+                    summary.setProfit(summary.getProfit().add(totalProfit));
+                }else {
+                    productMap.put(concat,new TransactionProductSummary(
+                            item.getProductId(),
+                            item.getName(),
+                            item.getSold(),
+                            item.getPrice(),
+                            item.getDiscountPercentage(),
+                            item.getCapital(),
+                            item.getTotalAmount(),
+                            totalCapital,
+                            totalProfit
+                    ));
+                }
+            }));
+
+        return productMap;
     }
 }

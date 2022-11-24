@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,17 +35,30 @@ public class MerchandiseService {
     }
 
     public List<Merchandise> getAllMerchandise(@NotNull String filter) {
-        if(filter.equalsIgnoreCase("Filter By Name")) return merchandiseRepository.findAllByIsActiveOrderByName("1");
-        else if(filter.equalsIgnoreCase("Filter By Stock H-L")) return merchandiseRepository.findAllByIsActiveOrderByQuantityPerPiecesDesc("1");
-        else if(filter.equalsIgnoreCase("Filter By Stock L-H")) return merchandiseRepository.findAllByIsActiveOrderByQuantityPerPieces("1");
-        else if(filter.equalsIgnoreCase("Filter By Price H-L")) return merchandiseRepository.findAllByIsActiveOrderByPriceDesc("1");
-        else if(filter.equalsIgnoreCase("Filter By Price L-H")) return merchandiseRepository.findAllByIsActiveOrderByPrice("1");
-        return merchandiseRepository.findAllByIsActiveOrderById("1");
+        return switch (filter) {
+            case "Filter By Name" -> merchandiseRepository.findAllByIsActiveOrderByName("1");
+            case "Filter By Stock H-L" -> merchandiseRepository.findAllByIsActiveOrderByQuantityPerPiecesDesc("1");
+            case "Filter By Stock L-H" -> merchandiseRepository.findAllByIsActiveOrderByQuantityPerPieces("1");
+            case "Filter By Price H-L" -> merchandiseRepository.findAllByIsActiveOrderByPriceDesc("1");
+            case "Filter By Price L-H" -> merchandiseRepository.findAllByIsActiveOrderByPrice("1");
+            default -> merchandiseRepository.findAllByIsActiveOrderById("1");
+        };
     }
 
-    public List<Merchandise> findMerchandiseBySearch(@NotNull String search) {
-        if(search.chars().allMatch(Character::isDigit)) return merchandiseRepository.findAllByPriceLessThanEqualAndIsActiveOrderByPriceDesc(search,"1");
-        return contains(search, merchandiseRepository.findAllByIsActiveOrderById("1"));
+    public List<Merchandise> findMerchandiseBySearch(@NotNull String search, String filter) {
+        List<Merchandise> merch;
+        if(search.chars().allMatch(Character::isDigit)) merch = merchandiseRepository.findAllByPriceLessThanEqualAndIsActiveOrderByPriceDesc(new BigDecimal(search),"1");
+        else merch = contains(search, merchandiseRepository.findAllByIsActiveOrderById("1"));
+
+        switch (filter) {
+            case "Filter By Name" -> merch.sort(Comparator.comparing(Merchandise::getName));
+            case "Filter By Stock H-L" -> merch.sort(Comparator.comparing(Merchandise::getQuantityPerPieces).reversed());
+            case "Filter By Stock L-H" -> merch.sort(Comparator.comparing(Merchandise::getQuantityPerPieces));
+            case "Filter By Price H-L" -> merch.sort(Comparator.comparing(Merchandise::getPrice).reversed());
+            case "Filter By Price L-H" -> merch.sort(Comparator.comparing(Merchandise::getPrice));
+            default -> merch.sort(Comparator.comparing(Merchandise::getId));
+        }
+        return merch;
     }
 
     public List<Merchandise> contains(String search, @NotNull List<Merchandise> list) {
@@ -159,8 +173,20 @@ public class MerchandiseService {
         return merchandiseRepository.findAllByIsActiveOrderById("0");
     }
 
-    public void unarchivedProduct(String id, boolean isZero) {
+    public void activateProduct(String id, boolean isZero) {
         if(isZero) merchandiseRepository.setProductActiveWithZeroQuantity(id);
         else merchandiseRepository.setProductIsActive(id,"1");
+    }
+
+    // NEED TO TEST
+    public boolean updateProductDiscount(String id, Integer quantity, Double discount, Integer quantityUpdate, Double discountUpdate) {
+        MerchandiseDiscount discountEntity = merchandiseDiscountRepository.save(new MerchandiseDiscount("",id,discountUpdate,quantityUpdate,"1"));
+        if(merchandiseDiscountRepository.countAllByIdAndQuantityAndDiscount(id,quantityUpdate,discountUpdate) > 1) {
+            merchandiseDiscountRepository.deleteAllByIdAndQuantityAndDiscount(id,quantityUpdate,discountUpdate);
+            merchandiseDiscountRepository.save(discountEntity);
+            return false;
+        }
+        merchandiseDiscountRepository.deleteAllByIdAndQuantityAndDiscount(id,quantity,discount);
+        return true;
     }
 }

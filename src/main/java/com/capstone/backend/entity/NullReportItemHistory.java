@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @ToString
 @Table(name = "null_item_history", schema = "retail_management")
 @Entity(name = "null_item_history")
-public class NullReportItemHistory {
+public class    NullReportItemHistory {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "no")
     private String num;
@@ -36,4 +36,6 @@ public class NullReportItemHistory {
     private String reportId;
     @Column(name = "archived_at")
     private String timestamp;
+    @Column(name = "reason")
+    private String reason;
 }
