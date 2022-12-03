@@ -178,7 +178,6 @@ public class MerchandiseService {
         else merchandiseRepository.setProductIsActive(id,"1");
     }
 
-    // NEED TO TEST
     public boolean updateProductDiscount(String id, Integer quantity, Double discount, Integer quantityUpdate, Double discountUpdate) {
         MerchandiseDiscount discountEntity = merchandiseDiscountRepository.save(new MerchandiseDiscount("",id,discountUpdate,quantityUpdate,"1"));
         if(merchandiseDiscountRepository.countAllByIdAndQuantityAndDiscount(id,quantityUpdate,discountUpdate) > 1) {
@@ -186,7 +185,18 @@ public class MerchandiseService {
             merchandiseDiscountRepository.save(discountEntity);
             return false;
         }
+        String timestamp = new Timestamp(System.currentTimeMillis()).toString();
         merchandiseDiscountRepository.deleteAllByIdAndQuantityAndDiscount(id,quantity,discount);
+        merchandiseDiscountHistoryRepository.save(new MerchandiseDiscountHistory("",id,discount,quantity,timestamp));
         return true;
+    }
+
+    public boolean isMerchandiseDiscountExist(String id, Integer quantity) {
+        return merchandiseDiscountRepository.existsByIdAndQuantity(id,quantity);
+    }
+
+    public void activateDiscount(String id, Integer quantity, Double discount, boolean isOverride) {
+        if(isOverride) merchandiseDiscountRepository.deleteAllByIdAndQuantity(id,quantity);
+        merchandiseDiscountRepository.save(new MerchandiseDiscount("",id,discount,quantity,"1"));
     }
 }

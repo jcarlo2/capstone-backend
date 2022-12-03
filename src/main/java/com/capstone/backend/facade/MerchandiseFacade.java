@@ -98,4 +98,12 @@ public class MerchandiseFacade {
     public boolean updateProductDiscount(String id, Integer quantity, Double discount, Integer quantityUpdate, Double discountUpdate) {
         return product.updateProductDiscount(id,quantity,discount,quantityUpdate,discountUpdate);
     }
+
+    public boolean isMerchandiseDiscountExist(String id, Integer quantity) {
+        return product.isMerchandiseDiscountExist(id,quantity);
+    }
+
+    public void activateDiscount(String id, Integer quantity, Double discount, boolean isOverride) {
+        product.activateDiscount(id,quantity,discount,isOverride);
+    }
 }

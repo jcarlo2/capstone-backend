@@ -5,19 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
-@Getter
-@Setter
+@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "employee", schema = "retail_management")
-@Entity(name = "employee")
+@Table(name = "user", schema = "retail_management")
+@Entity(name = "user")
 public class User {
-
     @Id
     @Column(name = "id")
     private String id;
@@ -27,4 +22,11 @@ public class User {
     private String lastName;
     @Column(name = "password")
     private String password;
+    @Column(name = "role")
+    private int role;
+    @Column(name = "timestamp",insertable = false)
+    private String timestamp;
+
+    @Transient
+    private boolean isSave;
 }

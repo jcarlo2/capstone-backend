@@ -101,6 +101,16 @@ public class MerchandiseController {
         return facade.checkIfDiscountQuantityExist(id,quantity);
     }
 
+    @GetMapping("/is-exist-discount")
+    public boolean isMerchandiseDiscountExist(@RequestParam String id, @RequestParam Integer quantity) {
+        return facade.isMerchandiseDiscountExist(id,quantity);
+    }
+
+    @PostMapping("/discount-activate")
+    public void activateDiscount(@RequestParam String id, @RequestParam Integer quantity, @RequestParam Double discount, @RequestParam boolean isOverride) {
+        facade.activateDiscount(id,quantity,discount,isOverride);
+    }
+
     @PostMapping("/archive-product-discount")
     public void archiveProductDiscount(@RequestParam String id, @RequestParam Integer quantity) {
         facade.archiveProductDiscount(id,quantity);

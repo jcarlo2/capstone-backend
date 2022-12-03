@@ -25,6 +25,9 @@ public interface MerchandiseDiscountRepository extends CrudRepository<Merchandis
     void deleteAllByIdAndQuantityAndDiscount(String id, Integer quantity, Double discount);
 
     @Transactional @Modifying
+    void deleteAllByIdAndQuantity(String id, Integer quantity);
+
+    @Transactional @Modifying
     @Query(value = "UPDATE product_discount SET discount = ?1, is_valid = 1 WHERE id = ?2 AND quantity = ?3", nativeQuery = true)
     void updateDiscount(Double discount, String id, Integer quantity);
 
