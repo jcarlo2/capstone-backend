@@ -26,6 +26,8 @@ public class User {
     private int role;
     @Column(name = "timestamp",insertable = false)
     private String timestamp;
+    @Column(name = "is_active")
+    private String isActive;
 
     @Transient
     private boolean isSave;

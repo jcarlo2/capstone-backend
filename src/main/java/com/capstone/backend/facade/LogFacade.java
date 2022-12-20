@@ -22,4 +22,8 @@ public class LogFacade {
     public void saveLogRecord(Log log) {
         service.saveLogRecord(log);
     }
+
+    public void archiveAll() {
+        service.archiveAll();
+    }
 }

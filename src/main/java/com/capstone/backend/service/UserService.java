@@ -18,12 +18,12 @@ public class UserService {
 
     public boolean existsUserByIdAndPassword(String username, @NotNull String password) {
         String pass = Base64.getEncoder().encodeToString(password.getBytes());
-        return user.existsUserByIdAndPassword(username,pass);
+        return user.existsUserByIdAndPasswordAndIsActive(username,pass,"1");
     }
 
     public int getRole(String username, @NotNull String password) {
         String pass = Base64.getEncoder().encodeToString(password.getBytes());
-        return user.findByIdAndPassword(username,pass).getRole();
+        return user.findByIdAndPasswordAndIsActive(username,pass,"1").getRole();
     }
 
     public boolean create(@NotNull User newUser) {
@@ -47,21 +47,21 @@ public class UserService {
     }
 
     public List<User> getUserList() {
-        return user.findAllByIdNotContainsAndFirstNameNotContainingAndLastNameNotContaining("7777","admin","admin");
+        return user.findAllByIdNotContainsAndFirstNameNotContainingAndLastNameNotContainingAndIsActive("7777","admin","admin","1");
     }
 
     public boolean changePassword(@NotNull String id, @NotNull String oldPassword, @NotNull String newPassword) {
         String newPass = Base64.getEncoder().encodeToString(newPassword.getBytes());
         String oldPass = Base64.getEncoder().encodeToString(oldPassword.getBytes());
-        if(!user.existsUserByIdAndPassword(id,oldPass)) return false;
+        if(!user.existsUserByIdAndPasswordAndIsActive(id,oldPass,"1")) return false;
         user.changePassword(id,oldPass,newPass);
         return true;
     }
 
-    public boolean deleteAccount(String id, @NotNull String password) {
+    public boolean archiveAccount(String id, @NotNull String password) {
         String adminPassword = Base64.getEncoder().encodeToString(password.getBytes());
-        if(user.existsUserByIdAndPassword("7777",adminPassword) && user.existsById(id)) {
-            user.removeById(id);
+        if(user.existsUserByIdAndPasswordAndIsActive("100000",adminPassword,"1") && user.existsById(id)) {
+            user.archiveUserAccount(id);
             return true;
         }
         return false;

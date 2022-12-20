@@ -11,10 +11,14 @@ import java.util.List;
 
 @Repository
 public interface UserRepository extends CrudRepository<User,String> {
-    boolean existsUserByIdAndPassword(String username, String password);
+    boolean existsUserByIdAndPasswordAndIsActive(String id, String password, String isActive);
     boolean existsByFirstNameAndLastName(String firstName, String lastName);
-    User findByIdAndPassword(String username, String password);
-    List<User> findAllByIdNotContainsAndFirstNameNotContainingAndLastNameNotContaining(String id, String firstName, String lastName);
+    User findByIdAndPasswordAndIsActive(String username, String password,String isActive);
+    List<User> findAllByIdNotContainsAndFirstNameNotContainingAndLastNameNotContainingAndIsActive(String id, String firstName, String lastName,String isActive);
+
+    @Transactional @Modifying
+    @Query(value = "UPDATE user SET is_active = 0 WHERE id = ?1",nativeQuery = true)
+    void archiveUserAccount(String id);
 
     @Transactional @Modifying
     void removeById(String id);

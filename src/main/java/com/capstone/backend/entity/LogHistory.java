@@ -1,16 +1,19 @@
 package com.capstone.backend.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 
-@Getter @Setter
-@ToString
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "log", schema = "retail_management")
-@Entity(name = "log")
-public class Log {
+@Table(name = "log_history", schema = "retail_management")
+@Entity(name = "log_history")
+public class LogHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "no")
@@ -21,8 +24,8 @@ public class Log {
     private String action;
     @Column(name = "description")
     private String description;
-    @Column(name = "date_time", insertable = false)
-    private String timestamp;
-    @Column(name = "is_deletable")
-    private String isDeletable;
+    @Column(name = "archived_at")
+    private String archivedAt;
+    @Column(name = "created_at", insertable = false)
+    private String createdAt;
 }

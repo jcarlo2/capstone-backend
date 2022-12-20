@@ -38,7 +38,7 @@ public class UserFacade {
         return service.changePassword(id,oldPassword,newPassword);
     }
 
-    public boolean deleteAccount(String id, String password) {
-        return service.deleteAccount(id,password);
+    public boolean archiveAccount(String id, String password) {
+        return service.archiveAccount(id,password);
     }
 }

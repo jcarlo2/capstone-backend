@@ -25,4 +25,9 @@ public class LogController {
     public void saveLogRecord(@RequestBody Log log) {
         facade.saveLogRecord(log);
     }
+
+    @PostMapping("/archive-all")
+    public void archiveAll() {
+        facade.archiveAll();
+    }
 }

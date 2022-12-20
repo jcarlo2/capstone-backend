@@ -18,4 +18,9 @@ public class DateController {
     public String getDate() {
         return facade.getDate();
     }
+
+    @GetMapping("get-time")
+    public String getTime() {
+        return facade.getTime();
+    }
 }

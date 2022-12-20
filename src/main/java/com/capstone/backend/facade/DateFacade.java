@@ -14,4 +14,8 @@ public class DateFacade {
     public String getDate() {
         return service.getDate();
     }
+
+    public String getTime() {
+        return service.getTime();
+    }
 }

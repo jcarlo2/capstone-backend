@@ -181,4 +181,9 @@ public class TransactionController {
     public List<List<TransactionProductSummary>> calculateAllProductSalesByEnd(@RequestParam String end) {
         return facade.calculateAllProductSalesByEnd(end);
     }
+
+    @GetMapping("/get-earliest-transaction")
+    public String getEarliestTransaction() {
+        return facade.getEarliestTransaction();
+    }
 }

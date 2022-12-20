@@ -48,7 +48,7 @@ public class UserController {
 
     @PostMapping("/delete-account")
     public boolean deleteAccount(String id, String password) {
-        return facade.deleteAccount(id,password);
+        return facade.archiveAccount(id,password);
     }
 }
 

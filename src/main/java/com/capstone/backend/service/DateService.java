@@ -12,4 +12,9 @@ public class DateService {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return dtf.format(LocalDateTime.now());
     }
+
+    public String getTime() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
+        return dtf.format(LocalDateTime.now());
+    }
 }

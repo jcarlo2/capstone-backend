@@ -265,4 +265,8 @@ public class TransactionFacade {
         Map<String, TransactionProductSummary> summaryList = service.calculateProductSales(service.findAllValidReportByEnd(end));
         return sorter.transactionInitializeAndSortList(summaryList);
     }
+
+    public String getEarliestTransaction() {
+        return service.getEarliestTransaction();
+    }
 }

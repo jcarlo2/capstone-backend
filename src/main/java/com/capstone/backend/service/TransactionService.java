@@ -4,8 +4,8 @@ import com.capstone.backend.entity.TransactionReport;
 import com.capstone.backend.entity.TransactionReportHistory;
 import com.capstone.backend.entity.TransactionReportItem;
 import com.capstone.backend.entity.TransactionReportItemHistory;
-import com.capstone.backend.pojo.TransactionProductSummary;
 import com.capstone.backend.pojo.SalesSummary;
+import com.capstone.backend.pojo.TransactionProductSummary;
 import com.capstone.backend.repository.TransactionItemRepository;
 import com.capstone.backend.repository.TransactionReportHistoryRepository;
 import com.capstone.backend.repository.TransactionReportItemHistoryRepository;
@@ -206,5 +206,10 @@ public class TransactionService {
             }));
 
         return productMap;
+    }
+
+    public String getEarliestTransaction() {
+        List<TransactionReport> reportList = reportRepository.findByIsValidOrderByTimestampDesc("1");
+        return reportList.get(reportList.size() - 1).getTimestamp().split(" ")[0];
     }
 }
