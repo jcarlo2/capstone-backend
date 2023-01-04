@@ -71,7 +71,8 @@ public class GUI extends JFrame {
                     String filename = "\\hbc-all-data.sql";
                     File file = new File(documentPath + filename);
                     filename = createFile(file,documentPath,filename);
-                    if(backup(filename)) JOptionPane.showMessageDialog(null,"All data is exported successfully.");
+                    if(backup(filename)) JOptionPane.showMessageDialog(null,
+                            "All data is exported successfully.\nSaved path: " + documentPath + File.separator + filename);
                     else JOptionPane.showMessageDialog(null,"Failed to export data.\nTry Again!!");
                 } catch (IOException ex) {
                     ex.printStackTrace();
